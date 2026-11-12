@@ -359,25 +359,25 @@ function renderFormBlocks() {
         const isChecked = !isFull && previouslySelected === block.id;
 
         const badgeHtml = left === 0
-            ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-purple-500/20 text-purple-700 border border-purple-500/30">${icon('lock', 'w-3 h-3')}${t('badge_full')}</span>`
+            ? `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-purple-500/20 text-purple-700 border border-purple-500/30">${icon('lock', 'w-3 h-3')}${t('badge_full')}</span>`
             : left === 1
-                ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-700 border border-amber-500/30">${icon('flame', 'w-3 h-3')}${t('badge_last')}</span>`
-                : `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-700 border border-emerald-500/30">${icon('armchair', 'w-3 h-3')}<span dir="ltr">${left}</span></span>`;
+                ? `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-700 border border-amber-500/30">${icon('flame', 'w-3 h-3')}${t('badge_last')}</span>`
+                : `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-700 border border-emerald-500/30">${icon('armchair', 'w-3 h-3')}<span dir="ltr">${left}</span></span>`;
 
         return `
             <label class="block ${isFull ? 'cursor-not-allowed' : 'cursor-pointer'}" title="${escapeHtml(titleOf(block))}">
                 <input type="radio" name="blockId" value="${block.id}" class="sr-only radio-card" ${isFull ? 'disabled' : ''} ${isChecked ? 'checked' : ''}>
-                <div class="h-full p-4 rounded-md border border-slate-400 bg-black/5 hover:border-slate-400 hover:bg-black/5 transition flex flex-col justify-between gap-3">
+                <div class="h-full p-4 rounded-lg border border-slate-200 bg-white hover:border-indigo-300 transition flex flex-col justify-between gap-3">
                     <div class="flex items-center gap-3">
-                        <span class="xp-btn p-2 rounded-md">${icon(block.icon, 'w-5 h-5')}</span>
+                        <span class="text-indigo-600 shrink-0">${icon(block.icon, 'w-6 h-6')}</span>
                         <div>
                             <div class="text-lg font-extrabold text-slate-900 leading-tight" dir="ltr">${rangeOf(block)}</div>
-                            <div class="text-[11px] text-slate-600">${escapeHtml(shortOf(block))}</div>
+                            <div class="text-xs text-slate-600">${escapeHtml(shortOf(block))}</div>
                         </div>
                     </div>
-                    <div class="flex items-center justify-between pt-2 border-t border-slate-400">
+                    <div class="flex items-center justify-between pt-3 border-t border-slate-100">
                         ${badgeHtml}
-                        <span class="text-[11px] text-slate-600 font-medium" dir="ltr">${count}/${block.capacity}</span>
+                        <span class="text-xs text-slate-600 font-medium" dir="ltr">${count}/${block.capacity}</span>
                     </div>
                 </div>
             </label>`;
@@ -425,7 +425,7 @@ function techHtml(tech) {
     if (!items.length) return '<span class="text-xs text-slate-500">—</span>';
     return items.map(k => {
         const label = escapeHtml(t(TECH[k].label));
-        return `<span title="${label}" aria-label="${label}" class="inline-flex items-center justify-center w-7 h-7 rounded-md bg-white ${TECH[k].color} border border-slate-400">${icon(TECH[k].icon, 'w-3.5 h-3.5')}</span>`;
+        return `<span title="${label}" aria-label="${label}" class="inline-flex items-center justify-center w-8 h-8 rounded-md bg-slate-50 ${TECH[k].color} border border-slate-200">${icon(TECH[k].icon, 'w-3.5 h-3.5')}</span>`;
     }).join('');
 }
 
@@ -444,7 +444,7 @@ function renderSchedule() {
 
             if (!person) {
                 return `
-                    <tr class="border-b border-slate-300 last:border-none hover:bg-blue-50 transition">
+                    <tr class="border-b border-slate-100 last:border-none hover:bg-slate-50 transition">
                         <td class="py-3 px-4 whitespace-nowrap" title="${note}">
                             <div class="font-mono text-xs sm:text-sm font-bold text-slate-500" dir="ltr">${slot.start} - ${slot.end}</div>
                         </td>
@@ -474,21 +474,21 @@ function renderSchedule() {
                 </td>` : '';
 
             const mineHtml = isMine ? `
-                <span class="inline-flex items-center gap-1 text-[11px] text-emerald-700 font-semibold">
+                <span class="inline-flex items-center gap-1 text-xs text-emerald-700 font-semibold">
                     ${icon('badge-check', 'w-3.5 h-3.5')}${escapeHtml(t('you'))}
                     <button data-action="edit" data-id="${id}" title="${escapeHtml(t('edit_btn'))}" aria-label="${escapeHtml(t('edit_btn'))}" class="ms-1 inline-flex items-center justify-center w-6 h-6 rounded-md bg-indigo-500/20 hover:bg-indigo-500/40 text-indigo-700 border border-indigo-500/40">${icon('pencil', 'w-3.5 h-3.5')}</button>
                     <button data-action="cancel" data-id="${id}" title="${escapeHtml(t('modal_cancel_title'))}" aria-label="${escapeHtml(t('modal_cancel_title'))}" class="inline-flex items-center justify-center w-6 h-6 rounded-md bg-purple-500/15 hover:bg-purple-500/30 text-purple-700 border border-purple-500/30">${icon('x', 'w-3.5 h-3.5')}</button>
                 </span>` : '';
 
             return `
-                <tr class="border-b border-slate-300 last:border-none ${isMine ? 'bg-emerald-50' : 'bg-blue-50'} hover:bg-blue-50 transition">
+                <tr class="border-b border-slate-100 last:border-none ${isMine ? 'bg-emerald-50' : ''} hover:bg-slate-50 transition">
                     <td class="py-3 px-4 whitespace-nowrap" title="${note}">
                         <div class="font-mono text-xs sm:text-sm font-bold text-indigo-700" dir="ltr">${slot.start} - ${slot.end}</div>
-                        <div class="text-[11px] text-slate-600">#${slotIdx + 1}</div>
+                        <div class="text-xs text-slate-600">#${slotIdx + 1}</div>
                     </td>
                     <td class="py-3 px-4 whitespace-nowrap">
                         <div class="flex items-center gap-2.5">
-                            <div class="xp-avatar w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-slate-900 shrink-0">
+                            <div class="xp-avatar w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0">
                                 ${escapeHtml(Array.from(person.name)[0]?.toUpperCase() || '?')}
                             </div>
                             <div class="flex flex-col">
@@ -504,7 +504,7 @@ function renderSchedule() {
         }).join('');
 
         const dinnerBreakHtml = bIdx === 1 ? `
-            <div class="glass-card rounded-lg p-4 flex items-center justify-center gap-3 text-slate-700 text-xs sm:text-sm">
+            <div class="rounded-lg px-4 py-3 bg-white/85 flex items-center justify-center gap-3 text-slate-800 text-sm">
                 ${icon('utensils', 'w-5 h-5 text-amber-700 shrink-0')}
                 <span>${t('dinner_html')}</span>
             </div>` : '';
@@ -513,7 +513,7 @@ function renderSchedule() {
             <div class="glass-card rounded-lg overflow-hidden">
                 <div class="titlebar px-4 py-3 flex flex-wrap items-center justify-between gap-2">
                     <div class="flex items-center gap-3">
-                        <span class="xp-btn p-2 rounded-md">${icon(block.icon, 'w-5 h-5')}</span>
+                        <span class="text-indigo-600 shrink-0">${icon(block.icon, 'w-6 h-6')}</span>
                         <div>
                             <span class="text-xs font-semibold uppercase tracking-wider text-indigo-700">${escapeHtml(titleOf(block))}</span>
                             <h3 class="text-lg font-extrabold text-slate-900" dir="ltr">${rangeOf(block)}</h3>
@@ -527,7 +527,7 @@ function renderSchedule() {
                 <div class="overflow-x-auto">
                     <table class="w-full text-start border-collapse">
                         <thead>
-                            <tr class="border-b border-slate-400 text-[11px] font-semibold uppercase tracking-wider text-slate-700 bg-black/5 text-start">
+                            <tr class="border-b border-slate-200 text-xs font-semibold uppercase tracking-wider text-slate-600 text-start">
                                 ${th('clock', 'th_time')}${th('user-round', 'th_presenter')}${th('lightbulb', 'th_topic')}${th('wrench', 'th_setup')}
                                 ${organizerMode ? th('shield', 'th_organize', 'text-end') : ''}
                             </tr>
