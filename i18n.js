@@ -19,15 +19,12 @@ const pt = {
     status_reconnecting: 'Reconectando…',
     status_local: 'Modo Local (só neste navegador)',
     status_offline: 'Sem conexão',
-    kicker: 'Don Toupeira e a Família apresentam',
     subtitle: '• Escolha seu Horário!',
     remaining: 'Vagas Restantes',
     totals: 'totais',
-    cd_label: 'A reunião da Família começa em',
     cd_label_today: 'É hoje!',
     cd_date: 'Sábado, 14/11 • 12h • não se atrase',
     cd_days: 'dias', cd_hours: 'horas', cd_mins: 'min', cd_secs: 'seg',
-    cd_live: '🌹 A Família está reunida. O rolê começou!',
     tab_form: 'Garantir Vaga',
     tab_schedule: 'Cronograma',
     org_on: 'Modo Organizador: ON',
@@ -87,7 +84,6 @@ const pt = {
     toast_block_required: 'Escolha um bloco de horário disponível!',
     toast_topic_required: 'Escreva o tema da sua apresentação ou escolha "Segredo" / "Sem tema por enquanto".',
     toast_reserve_fail: 'Não foi possível reservar. Tente de novo.',
-    toast_success: 'Acordo selado, {name}. A Família não esquece. 🌹',
     toast_org_on: 'Modo Organizador ativado!',
     toast_removed: 'Inscrição removida e vaga liberada!',
     toast_reset: 'Todas as {n} vagas foram resetadas!',
@@ -106,15 +102,12 @@ const pt = {
     modal_cancel_title: 'Cancelar sua inscrição?',
     modal_cancel_msg: 'Sua vaga das {time} vai ficar livre para outra pessoa.',
     modal_cancel_ok: 'Cancelar inscrição',
-    wa_header: 'ROLÊ DE SLIDES - CRONOGRAMA DA FAMÍLIA',
     wa_date: 'Sábado, 14/11 • a partir das 12h',
-    wa_tagline: 'Uma vaga que você não pode recusar.',
     wa_occupied: '{n}/{cap} ocupadas',
     wa_free: '[Vaga Livre]',
     wa_dinner: '18h00 às 20h00: Pausa para Jantar',
     wa_topic_secret: '🤫 Tema Surpresa',
     wa_topic_tbd: '⏳ A definir',
-    mole_alt: 'Don Toupeira, de chapéu e gravata-borboleta, com uma rosa na lapela'
 };
 
 const es = {
@@ -125,15 +118,12 @@ const es = {
     status_reconnecting: 'Reconectando…',
     status_local: 'Modo local (solo en este navegador)',
     status_offline: 'Sin conexión',
-    kicker: 'Don Topo y la Familia presentan',
     subtitle: '• ¡Elige tu horario!',
     remaining: 'Plazas restantes',
     totals: 'en total',
-    cd_label: 'La reunión de la Familia empieza en',
     cd_label_today: '¡Es hoy!',
     cd_date: 'Sábado 14/11 • 12h • no llegues tarde',
     cd_days: 'días', cd_hours: 'horas', cd_mins: 'min', cd_secs: 'seg',
-    cd_live: '🌹 La Familia está reunida. ¡Empezó la juntada!',
     tab_form: 'Reservar plaza',
     tab_schedule: 'Programa',
     org_on: 'Modo organizador: ON',
@@ -193,7 +183,6 @@ const es = {
     toast_block_required: '¡Elige un bloque de horario disponible!',
     toast_topic_required: 'Escribe el tema de tu presentación o elige "Secreto" / "Todavía no decidí".',
     toast_reserve_fail: 'No se pudo reservar. Inténtalo de nuevo.',
-    toast_success: 'Trato hecho, {name}. La Familia no olvida. 🌹',
     toast_org_on: '¡Modo organizador activado!',
     toast_removed: '¡Inscripción quitada y plaza liberada!',
     toast_reset: '¡Las {n} plazas fueron reiniciadas!',
@@ -212,15 +201,12 @@ const es = {
     modal_cancel_title: '¿Cancelar tu inscripción?',
     modal_cancel_msg: 'Tu plaza de las {time} quedará libre para otra persona.',
     modal_cancel_ok: 'Cancelar inscripción',
-    wa_header: 'ROLÊ DE SLIDES - PROGRAMA DE LA FAMILIA',
     wa_date: 'Sábado 14/11 • desde las 12h',
-    wa_tagline: 'Una plaza que no podrás rechazar.',
     wa_occupied: '{n}/{cap} ocupadas',
     wa_free: '[Plaza libre]',
     wa_dinner: '18:00 a 20:00: Pausa para cenar',
     wa_topic_secret: '🤫 Tema sorpresa',
     wa_topic_tbd: '⏳ Por definir',
-    mole_alt: 'Don Topo, con sombrero y pajarita, con una rosa en la solapa'
 };
 
 const he = {
@@ -231,15 +217,12 @@ const he = {
     status_reconnecting: 'מתחבר מחדש…',
     status_local: 'מצב מקומי (רק בדפדפן הזה)',
     status_offline: 'אין חיבור',
-    kicker: 'דון חפרפרת והמשפחה מציגים',
     subtitle: '• בחרו שעה!',
     remaining: 'מקומות שנותרו',
     totals: 'סה״כ',
-    cd_label: 'פגישת המשפחה מתחילה בעוד',
     cd_label_today: 'זה היום!',
     cd_date: 'שבת, 14/11 • 12:00 • לא לאחר',
     cd_days: 'ימים', cd_hours: 'שעות', cd_mins: 'דק׳', cd_secs: 'שנ׳',
-    cd_live: '🌹 המשפחה התכנסה. המפגש התחיל!',
     tab_form: 'לשריין מקום',
     tab_schedule: 'לוח זמנים',
     org_on: 'מצב מארגן: פעיל',
@@ -299,7 +282,6 @@ const he = {
     toast_block_required: 'בחרו בלוק זמן פנוי!',
     toast_topic_required: 'כתבו את נושא ההרצאה או בחרו "סודי" / "עוד לא החלטתי".',
     toast_reserve_fail: 'השריון נכשל. נסו שוב.',
-    toast_success: 'העסקה נסגרה, {name}. המשפחה לא שוכחת. 🌹',
     toast_org_on: 'מצב מארגן הופעל!',
     toast_removed: 'ההרשמה נמחקה והמקום התפנה!',
     toast_reset: 'כל {n} המקומות אופסו!',
@@ -318,15 +300,12 @@ const he = {
     modal_cancel_title: 'לבטל את ההרשמה שלך?',
     modal_cancel_msg: 'המקום שלך ב־{time} יתפנה למישהו אחר.',
     modal_cancel_ok: 'לבטל הרשמה',
-    wa_header: 'ROLÊ DE SLIDES - לוח הזמנים של המשפחה',
     wa_date: 'שבת, 14/11 • מ־12:00',
-    wa_tagline: 'מקום שאי אפשר לסרב לו.',
     wa_occupied: '{n}/{cap} תפוסים',
     wa_free: '[מקום פנוי]',
     wa_dinner: '18:00–20:00: הפסקת ארוחת ערב',
     wa_topic_secret: '🤫 נושא הפתעה',
     wa_topic_tbd: '⏳ ייקבע',
-    mole_alt: 'דון חפרפרת עם כובע ופפיון, ושושנה בדש הז׳קט'
 };
 
 const ga = {
@@ -337,15 +316,12 @@ const ga = {
     status_reconnecting: 'Ag athcheangal…',
     status_local: 'Mód áitiúil (sa bhrabhsálaí seo amháin)',
     status_offline: 'Gan cheangal',
-    kicker: 'Cuireann Don Caochán agus an Teaghlach i láthair',
     subtitle: '• Roghnaigh d’am!',
     remaining: 'Áiteanna fágtha',
     totals: 'san iomlán',
-    cd_label: 'Tosaíonn cruinniú an Teaghlaigh i gceann',
     cd_label_today: 'Inniu atá sé!',
     cd_date: 'Dé Sathairn, 14/11 • 12:00 • ná bí déanach',
     cd_days: 'lá', cd_hours: 'uair', cd_mins: 'nóim', cd_secs: 'soic',
-    cd_live: '🌹 Tá an Teaghlach le chéile. Tá sé tosaithe!',
     tab_form: 'Cuir áit in áirithe',
     tab_schedule: 'Clár ama',
     org_on: 'Mód eagraí: AR',
@@ -405,7 +381,6 @@ const ga = {
     toast_block_required: 'Roghnaigh bloc ama atá saor!',
     toast_topic_required: 'Scríobh d’ábhar nó roghnaigh "faoi rún" / "níl sé socraithe".',
     toast_reserve_fail: 'Níorbh fhéidir áirithint. Bain triail eile as.',
-    toast_success: 'Tá an margadh déanta, {name}. Ní dhéanann an Teaghlach dearmad. 🌹',
     toast_org_on: 'Mód eagraí ar siúl!',
     toast_removed: 'Scriosadh an clárú agus saoradh an áit!',
     toast_reset: 'Athshocraíodh na {n} áit go léir!',
@@ -424,15 +399,12 @@ const ga = {
     modal_cancel_title: 'Do chlárú a chealú?',
     modal_cancel_msg: 'Beidh d’áit ag {time} saor do dhuine eile.',
     modal_cancel_ok: 'Cealaigh an clárú',
-    wa_header: 'ROLÊ DE SLIDES - CLÁR AN TEAGHLAIGH',
     wa_date: 'Dé Sathairn, 14/11 • ó 12:00',
-    wa_tagline: 'Áit nach féidir leat a dhiúltú.',
     wa_occupied: '{n}/{cap} tógtha',
     wa_free: '[Áit saor]',
     wa_dinner: '18:00–20:00: Sos dinnéir',
     wa_topic_secret: '🤫 Ábhar faoi rún',
     wa_topic_tbd: '⏳ Le socrú',
-    mole_alt: 'Don Caochán le hata agus carbhat cuachóige, rós ar a liopéad'
 };
 
 // Sindarin (neo-sindarin aproximado)
@@ -444,22 +416,19 @@ const sjn = {
     status_reconnecting: 'Ad-govaded…',
     status_local: 'Mín ned i lam hen',
     status_offline: 'Ú-govannen',
-    kicker: 'Hîr Toupeira a i Nost tôl',
     subtitle: '• Cilo i lû lín!',
     remaining: 'Sedh lein',
     totals: 'pain',
-    cd_label: 'Govaded i Nost tôl ned',
     cd_label_today: 'Si i aur!',
     cd_date: 'Oraearon, 14/11 • 12 • avo lasto lû',
     cd_days: 'aur', cd_hours: 'lû', cd_mins: 'tith', cd_secs: 'tith-nîn',
-    cd_live: '🌹 I Nost govannen. Mae govannen!',
     tab_form: 'Mabo sad',
     tab_schedule: 'Lûr',
     org_on: 'Hîr: ON',
     org_off: 'Hîr: OFF',
     ph_name: 'Ned: Legolas, Arwen, Hîr Slide...',
     tech_badge_laptop: 'Parf', tech_badge_file: 'Parf i mbar', tech_badge_audio: 'Lam',
-    submit: 'Pedo mellon a minno 🌹',
+    submit: 'Pedo mellon a minno',
     submit_busy: 'Mabed i sad lín...',
     submit_full: 'Pain {n} sedh mabin!',
     copy_btn: 'Rîdo i lûr an WhatsApp',
@@ -512,7 +481,6 @@ const sjn = {
     toast_block_required: 'Cilo rann!',
     toast_topic_required: 'Teitho i pent egor cilo "thurin" / "ú-chiliel".',
     toast_reserve_fail: 'Ú-ganel. Ad-cerio.',
-    toast_success: 'Mae govannen, {name}. I Nost ú-dhergol. 🌹',
     toast_org_on: 'Hîr i Nost!',
     toast_removed: 'I sad lein!',
     toast_reset: 'Pain {n} sedh lein!',
@@ -531,15 +499,12 @@ const sjn = {
     modal_cancel_title: 'Avo i sad lín?',
     modal_cancel_msg: 'I sad lín ({time}) lein an arall.',
     modal_cancel_ok: 'Avo',
-    wa_header: 'ROLÊ DE SLIDES - LÛR I NOST',
     wa_date: 'Oraearon, 14/11 • o 12',
-    wa_tagline: 'I sad ú-ganel û-baded.',
     wa_occupied: '{n}/{cap}',
     wa_free: '[Sad lein]',
     wa_dinner: '18–20: Mad',
     wa_topic_secret: '🤫 Pent thurin',
     wa_topic_tbd: '⏳ Ú-chiliel',
-    mole_alt: 'Hîr Toupeira, ah thôl a rhosc ned i chol'
 };
 
 // Quenya (neo-quenya aproximado)
@@ -551,22 +516,19 @@ const qya = {
     status_reconnecting: 'Ata-ommentië…',
     status_local: 'Mi hya lambë erë',
     status_offline: 'Ú-ommentië',
-    kicker: 'Heru Toupeira ar i Nossë tulyar',
     subtitle: '• Ciilë lúmelya!',
     remaining: 'Nómi lemyar',
     totals: 'ilyë',
-    cd_label: 'Elen síla lúmenn’ omentielvo',
     cd_label_today: 'Sí ná i aurë!',
     cd_date: 'Eldevanya, 14/11 • 12 • áva na telwa',
     cd_days: 'auri', cd_hours: 'lúmi', cd_mins: 'tinwi', cd_secs: 'lucci',
-    cd_live: '🌹 I Nossë ná ocómienwa. Aiya!',
     tab_form: 'Mapa nómë',
     tab_schedule: 'Lúmequenta',
     org_on: 'Heru: ON',
     org_off: 'Heru: OFF',
     ph_name: 'Sie: Elrond, Lúthien, Heru Slide...',
     tech_badge_laptop: 'Ilin', tech_badge_file: 'Coava ilin', tech_badge_audio: 'Lamma',
-    submit: 'Mapa nómenya sí 🌹',
+    submit: 'Mapa nómenya sí',
     submit_busy: 'Mápa nómelya...',
     submit_full: 'Ilyë {n} nómi mapainë!',
     copy_btn: 'Ata-teca WhatsAppen',
@@ -619,7 +581,6 @@ const qya = {
     toast_block_required: 'Ciilë ranta!',
     toast_topic_required: 'Teca quentalya hya ciilë "muina" / "ú-cílina".',
     toast_reserve_fail: 'Ú-lertanë. Ata-ricë.',
-    toast_success: 'Namárië ar mára, {name}. I Nossë ú-wanwa. 🌹',
     toast_org_on: 'Heru i Nossëo!',
     toast_removed: 'I nómë lusta ata!',
     toast_reset: 'Ilyë {n} nómi lustar!',
@@ -638,78 +599,87 @@ const qya = {
     modal_cancel_title: 'Áva nómelya?',
     modal_cancel_msg: 'Nómelya ({time}) nauva lusta exan.',
     modal_cancel_ok: 'Áva',
-    wa_header: 'ROLÊ DE SLIDES - LÚMEQUENTA I NOSSËO',
     wa_date: 'Eldevanya, 14/11 • ho 12',
-    wa_tagline: 'Nómë ya ú-polil querë.',
     wa_occupied: '{n}/{cap}',
     wa_free: '[Nómë lusta]',
     wa_dinner: '18–20: Mattië',
     wa_topic_secret: '🤫 Quenta muina',
     wa_topic_tbd: '⏳ Ú-cílina',
-    mole_alt: 'Heru Toupeira, as carma ar losselië'
 };
 
 // Rótulos curtos: a interface fala por ícones, o texto só nomeia.
 const SHORT = {
     pt: {
-        intro_html: 'Uma vaga que você não pode recusar. 🌹 <strong class="text-slate-100">{n} vagas</strong>, 3 blocos, ao vivo.',
+        edit_title: 'Editando sua inscrição', edit_discard: 'Descartar', edit_btn: 'Editar minha inscrição',
+        submit_save: 'Salvar alterações', toast_updated: 'Inscrição atualizada!',
+        cd_label: 'Começa em', cd_live: '🛹 O rolê começou!', toast_success: 'Vaga garantida, {name}! 🎉', wa_header: 'ROLÊ DE SLIDES - CRONOGRAMA',
         q1: 'Nome', q2: 'Horário', q3: 'Tema', q4: 'Setup', optional: 'opcional', live_updates: 'ao vivo',
         topic_defined: 'Tenho tema', topic_secret: 'Segredo', topic_tbd: 'Depois',
         topic_defined_tip: 'O título aparece no cronograma', topic_secret_tip: 'Ninguém sabe até o 1º slide', topic_tbd_tip: 'Garante a vaga e decide depois',
         ph_topic: 'Qual o tema?',
         tech_laptop: 'Meu notebook', tech_file: 'Arquivo antes', tech_audio: 'Áudio',
         avail_title: 'Vagas', sched_title: 'Cronograma',
-        chip_arrive: 'chegada', chip_talks: 'slides', chip_slot: '15 + 5 min', chip_dinner: 'jantar', chip_cancel: 'cancela no seu celular'
+        chip_arrive: 'chegada', chip_talks: 'slides', chip_slot: '15 + 5 min', chip_dinner: 'jantar', chip_cancel: 'edita ou cancela no seu celular'
     },
     es: {
-        intro_html: 'Una plaza que no podrás rechazar. 🌹 <strong class="text-slate-100">{n} plazas</strong>, 3 bloques, en vivo.',
+        edit_title: 'Editando tu inscripción', edit_discard: 'Descartar', edit_btn: 'Editar mi inscripción',
+        submit_save: 'Guardar cambios', toast_updated: '¡Inscripción actualizada!',
+        cd_label: 'Empieza en', cd_live: '🛹 ¡Empezó la juntada!', toast_success: '¡Plaza reservada, {name}! 🎉', wa_header: 'ROLÊ DE SLIDES - PROGRAMA',
         q1: 'Nombre', q2: 'Horario', q3: 'Tema', q4: 'Equipo', optional: 'opcional', live_updates: 'en vivo',
         topic_defined: 'Tengo tema', topic_secret: 'Secreto', topic_tbd: 'Luego',
         topic_defined_tip: 'El título sale en el programa', topic_secret_tip: 'Nadie lo sabe hasta la 1.ª diapositiva', topic_tbd_tip: 'Reserva y decide luego',
         ph_topic: '¿Cuál es el tema?',
         tech_laptop: 'Mi portátil', tech_file: 'Archivo antes', tech_audio: 'Audio',
         avail_title: 'Plazas', sched_title: 'Programa',
-        chip_arrive: 'llegada', chip_talks: 'diapositivas', chip_slot: '15 + 5 min', chip_dinner: 'cena', chip_cancel: 'cancela en tu móvil'
+        chip_arrive: 'llegada', chip_talks: 'diapositivas', chip_slot: '15 + 5 min', chip_dinner: 'cena', chip_cancel: 'edita o cancela en tu móvil'
     },
     he: {
-        intro_html: 'מקום שאי אפשר לסרב לו. 🌹 <strong class="text-slate-100">{n} מקומות</strong>, 3 בלוקים, בזמן אמת.',
+        edit_title: 'עריכת ההרשמה שלך', edit_discard: 'ביטול שינויים', edit_btn: 'לערוך את ההרשמה שלי',
+        submit_save: 'לשמור שינויים', toast_updated: 'ההרשמה עודכנה!',
+        cd_label: 'מתחיל בעוד', cd_live: '🛹 המפגש התחיל!', toast_success: 'המקום נשמר, {name}! 🎉', wa_header: 'ROLÊ DE SLIDES - לוח זמנים',
         q1: 'שם', q2: 'שעה', q3: 'נושא', q4: 'ציוד', optional: 'רשות', live_updates: 'בזמן אמת',
         topic_defined: 'יש לי נושא', topic_secret: 'סוד', topic_tbd: 'אחר כך',
         topic_defined_tip: 'הכותרת תופיע בלוח הזמנים', topic_secret_tip: 'אף אחד לא יודע עד השקופית הראשונה', topic_tbd_tip: 'שריינו עכשיו, החליטו אחר כך',
         ph_topic: 'מה הנושא?',
         tech_laptop: 'הלפטופ שלי', tech_file: 'קובץ מראש', tech_audio: 'שמע',
         avail_title: 'מקומות', sched_title: 'לוח זמנים',
-        chip_arrive: 'הגעה', chip_talks: 'הרצאות', chip_slot: '15 + 5 דק׳', chip_dinner: 'ארוחה', chip_cancel: 'ביטול מהטלפון שלך'
+        chip_arrive: 'הגעה', chip_talks: 'הרצאות', chip_slot: '15 + 5 דק׳', chip_dinner: 'ארוחה', chip_cancel: 'עריכה או ביטול מהטלפון שלך'
     },
     ga: {
-        intro_html: 'Áit nach féidir leat a dhiúltú. 🌹 <strong class="text-slate-100">{n} áit</strong>, 3 bhloc, beo.',
+        edit_title: 'Do chlárú á chur in eagar', edit_discard: 'Caith uait', edit_btn: 'Cuir mo chlárú in eagar',
+        submit_save: 'Sábháil athruithe', toast_updated: 'Nuashonraíodh do chlárú!',
+        cd_label: 'Tosaíonn i gceann', cd_live: '🛹 Tá sé tosaithe!', toast_success: 'Tá d’áit agat, {name}! 🎉', wa_header: 'ROLÊ DE SLIDES - CLÁR',
         q1: 'Ainm', q2: 'Am', q3: 'Ábhar', q4: 'Trealamh', optional: 'roghnach', live_updates: 'beo',
         topic_defined: 'Tá ábhar agam', topic_secret: 'Rún', topic_tbd: 'Níos déanaí',
         topic_defined_tip: 'Beidh an teideal ar an gclár', topic_secret_tip: 'Ní bheidh a fhios ag aon duine', topic_tbd_tip: 'Faigh áit, socraigh níos déanaí',
         ph_topic: 'Cad é an t-ábhar?',
         tech_laptop: 'Mo ríomhaire', tech_file: 'Comhad roimh ré', tech_audio: 'Fuaim',
         avail_title: 'Áiteanna', sched_title: 'Clár',
-        chip_arrive: 'teacht', chip_talks: 'cainteanna', chip_slot: '15 + 5 nóim', chip_dinner: 'dinnéar', chip_cancel: 'cealaigh ar d’fhón'
+        chip_arrive: 'teacht', chip_talks: 'cainteanna', chip_slot: '15 + 5 nóim', chip_dinner: 'dinnéar', chip_cancel: 'cuir in eagar nó cealaigh ar d’fhón'
     },
     sjn: {
-        intro_html: 'I sad ú-ganel û-baded. 🌹 <strong class="text-slate-100">{n} sedh</strong>, nêl rann.',
+        edit_title: 'Ad-gared i sad lín', edit_discard: 'Avo', edit_btn: 'Ad-caro i sad nín',
+        submit_save: 'Heb i ad-gared', toast_updated: 'I sad lín ad-carnen!',
+        cd_label: 'Tôl ned', cd_live: '🛹 Mae govannen!', toast_success: 'Mae govannen, {name}! 🎉', wa_header: 'ROLÊ DE SLIDES - LÛR',
         q1: 'Eneth', q2: 'Lû', q3: 'Pent', q4: 'Parf', optional: 'ú-bórad', live_updates: 'sí',
         topic_defined: 'Pent nín', topic_secret: 'Thurin', topic_tbd: 'Ab',
         topic_defined_tip: 'I eneth ned i lûr', topic_secret_tip: 'Ú-ista pen', topic_tbd_tip: 'Mabo sí, nautho ab',
         ph_topic: 'Man i pent?',
         tech_laptop: 'Parf nín', tech_file: 'Thîw minui', tech_audio: 'Lam',
         avail_title: 'Sedh', sched_title: 'Lûr',
-        chip_arrive: 'tûl', chip_talks: 'phent', chip_slot: '15 + 5', chip_dinner: 'mad', chip_cancel: 'avo ned i parf lín'
+        chip_arrive: 'tûl', chip_talks: 'phent', chip_slot: '15 + 5', chip_dinner: 'mad', chip_cancel: 'ad-caro egor avo ned i parf lín'
     },
     qya: {
-        intro_html: 'Nómë ya ú-polil querë. 🌹 <strong class="text-slate-100">{n} nómi</strong>, nelë rantar.',
+        edit_title: 'Envinyatië nómelyo', edit_discard: 'Áva', edit_btn: 'Envinyata nómenya',
+        submit_save: 'Hepa i vistiër', toast_updated: 'Nómelya envinyanta!',
+        cd_label: 'Elen síla lúmenn’ omentielvo', cd_live: '🛹 Aiya! Yestanë!', toast_success: 'Aiya, {name}! 🎉', wa_header: 'ROLÊ DE SLIDES - LÚMEQUENTA',
         q1: 'Essë', q2: 'Lúmë', q3: 'Quenta', q4: 'Ilin', optional: 'ú-maurëa', live_updates: 'sí',
         topic_defined: 'Samin quenta', topic_secret: 'Muina', topic_tbd: 'Apa',
         topic_defined_tip: 'I essë mi lúmequenta', topic_secret_tip: 'Úquen istuva', topic_tbd_tip: 'Mapa sí, sana apa',
         ph_topic: 'Mana i quenta?',
         tech_laptop: 'Ilinyanya', tech_file: 'Tecil nó', tech_audio: 'Lamma',
         avail_title: 'Nómi', sched_title: 'Lúmequenta',
-        chip_arrive: 'tulë', chip_talks: 'quentar', chip_slot: '15 + 5', chip_dinner: 'mattië', chip_cancel: 'áva mi ilinelya'
+        chip_arrive: 'tulë', chip_talks: 'quentar', chip_slot: '15 + 5', chip_dinner: 'mattië', chip_cancel: 'envinyata hya áva mi ilinelya'
     }
 };
 for (const [code, extra] of Object.entries(SHORT)) Object.assign({ pt, es, he, ga, sjn, qya }[code], extra);
@@ -736,7 +706,6 @@ export function setLang(code) {
     document.documentElement.dir = meta.dir;
     document.title = t('page_title');
     document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
-    document.querySelectorAll('[data-i18n-html]').forEach(el => { el.innerHTML = t(el.dataset.i18nHtml, { n: 16 }); });
     document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
     document.querySelectorAll('[data-i18n-aria]').forEach(el => { el.setAttribute('aria-label', t(el.dataset.i18nAria)); });
     document.querySelectorAll('[data-i18n-title]').forEach(el => { el.title = t(el.dataset.i18nTitle); });

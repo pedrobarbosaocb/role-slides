@@ -3,7 +3,7 @@
 Inscrição nos horários de apresentação do rolê — **sábado, 14/11/2026, a partir das 12h** (countdown no topo da página).
 
 - 16 vagas em 3 blocos (14h–16h, 16h–18h, 20h–22h); as vagas diminuem ao vivo para todo mundo.
-- Quem se inscreve pode **cancelar** a própria inscrição (vale no mesmo navegador: a chave fica no `localStorage`).
+- Quem se inscreve pode **editar ou cancelar** só a própria inscrição (vale no mesmo navegador: a chave fica no `localStorage`; o banco confere o hash).
 - **Modo Organizador** (com PIN): reordenar, remover e resetar.
 - Botão para copiar o cronograma formatado para o WhatsApp.
 
@@ -12,7 +12,7 @@ Inscrição nos horários de apresentação do rolê — **sábado, 14/11/2026, 
 Site estático (`index.html` + `app.js`); o workflow gera `config.js` com as variáveis do repositório.
 Os dados ficam no schema privado `rs` do Supabase, fora da API REST; o front só usa a chave pública (`anon`) e chama as funções RPC `rs_*`, que conferem capacidade do bloco (com lock), chave de cancelamento e PIN (8 erros em 10 min bloqueiam o IP). O tempo real usa Realtime Broadcast (canal `role-slides`), com recarga a cada 30 s como reserva.
 
-1. No **SQL Editor** do projeto Supabase, rode `supabase/migrations/0001_role_slides.sql` inteiro (idempotente).
+1. No **SQL Editor** do projeto Supabase, rode os arquivos de `supabase/migrations/` em ordem (`0001`, `0002`; são idempotentes).
 2. Defina o PIN do organizador (4 a 8 dígitos):
    ```sql
    insert into rs.config values ('organizer_pin', '1234')

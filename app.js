@@ -56,6 +56,7 @@ let organizerMode = false;
 let organizerPin = null;
 let backend = null;
 let busy = false;
+let editingId = null; // inscrição própria sendo editada no formulário
 let statusKey = 'status_connecting';
 let statusOk = false;
 
@@ -121,6 +122,10 @@ async function createSupabaseBackend(url, anonKey) {
             await rpc('rs_cancel', { p_id: id, p_key: myRegs()[id] || '' });
             forgetMine(id);
         },
+        update: (id, d) => rpc('rs_update', {
+            p_id: id, p_key: myRegs()[id] || '', p_name: d.name, p_block: d.blockId,
+            p_topic_mode: d.topicMode, p_topic_title: d.topicTitle, p_tech: d.tech
+        }),
         checkPin: pin => rpc('rs_check_pin', { p_pin: pin }),
         remove: (pin, id) => rpc('rs_remove', { p_pin: pin, p_id: id }),
         move: (pin, id, dir) => rpc('rs_move', { p_pin: pin, p_id: id, p_dir: dir }),
@@ -165,6 +170,23 @@ function createLocalBackend() {
             rememberMine(id, 'local');
         },
         async cancel(id) { await this.remove(null, id); forgetMine(id); },
+        async update(id, d) {
+            const list = load();
+            const r = list.find(x => x.id === id);
+            if (!r || !myRegs()[id]) throw new RpcError('forbidden');
+            if (d.blockId !== r.blockId) {
+                const block = BLOCKS_CONFIG.find(b => b.id === d.blockId);
+                const inBlock = list.filter(x => x.blockId === d.blockId);
+                if (!block) throw new RpcError('bad_block');
+                if (inBlock.length >= block.capacity) throw new RpcError('full');
+                const oldBlock = r.blockId;
+                r.blockId = d.blockId;
+                r.orderIndex = inBlock.reduce((m, x) => Math.max(m, x.orderIndex), -1) + 1;
+                renumber(list, oldBlock);
+            }
+            Object.assign(r, { name: d.name, topicMode: d.topicMode, topicTitle: d.topicMode === 'defined' ? d.topicTitle : '', tech: d.tech });
+            save(list);
+        },
         async checkPin() { return { ok: true }; },
         async remove(_pin, id) {
             const list = load();
@@ -199,6 +221,7 @@ async function refresh() {
             refreshAgain = false;
             try {
                 registrations = await backend.list();
+                if (editingId && !registrations.some(r => r.id === editingId)) stopEdit(false);
                 renderAll();
             } catch (err) {
                 console.error(err);
@@ -312,23 +335,30 @@ function renderCounters() {
 
     if (busy) return;
     const submitBtn = document.getElementById('submit-btn');
+    if (editingId) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `${icon('save', 'w-5 h-5')}<span>${t('submit_save')}</span>`;
+        return;
+    }
     submitBtn.disabled = remaining === 0;
     submitBtn.innerHTML = remaining === 0
         ? `${icon('lock', 'w-5 h-5')}<span>${t('submit_full', { n: TOTAL_CAPACITY })}</span>`
-        : `${icon('stamp', 'w-5 h-5')}<span>${t('submit')}</span>`;
+        : `${icon('check-circle-2', 'w-5 h-5')}<span>${t('submit')}</span>`;
 }
 
 function renderFormBlocks() {
     const container = document.getElementById('blocks-radio-container');
     const previouslySelected = document.querySelector('input[name="blockId"]:checked')?.value;
 
+    const editing = registrations.find(r => r.id === editingId);
     container.innerHTML = BLOCKS_CONFIG.map(block => {
         const count = blockRegs(block.id).length;
         const left = Math.max(0, block.capacity - count);
-        const isFull = left === 0;
+        // quem está editando sempre pode manter o próprio bloco, mesmo lotado
+        const isFull = left === 0 && editing?.blockId !== block.id;
         const isChecked = !isFull && previouslySelected === block.id;
 
-        const badgeHtml = isFull
+        const badgeHtml = left === 0
             ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">${icon('lock', 'w-3 h-3')}${t('badge_full')}</span>`
             : left === 1
                 ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">${icon('flame', 'w-3 h-3')}${t('badge_last')}</span>`
@@ -337,15 +367,15 @@ function renderFormBlocks() {
         return `
             <label class="block ${isFull ? 'cursor-not-allowed' : 'cursor-pointer'}" title="${escapeHtml(titleOf(block))}">
                 <input type="radio" name="blockId" value="${block.id}" class="sr-only radio-card" ${isFull ? 'disabled' : ''} ${isChecked ? 'checked' : ''}>
-                <div class="h-full p-4 rounded-xl border border-slate-700/90 bg-slate-900/70 hover:border-slate-500 transition flex flex-col justify-between gap-3">
+                <div class="h-full p-4 rounded-md border border-white/15 bg-white/5 hover:border-white/35 hover:bg-white/10 transition flex flex-col justify-between gap-3">
                     <div class="flex items-center gap-3">
-                        <span class="p-2 rounded-lg bg-indigo-500/15 text-indigo-300">${icon(block.icon, 'w-5 h-5')}</span>
+                        <span class="aero-btn p-2 rounded-md">${icon(block.icon, 'w-5 h-5')}</span>
                         <div>
                             <div class="text-lg font-extrabold text-white leading-tight" dir="ltr">${rangeOf(block)}</div>
                             <div class="text-[11px] text-slate-400">${escapeHtml(shortOf(block))}</div>
                         </div>
                     </div>
-                    <div class="flex items-center justify-between pt-2 border-t border-slate-800/80">
+                    <div class="flex items-center justify-between pt-2 border-t border-white/10">
                         ${badgeHtml}
                         <span class="text-[11px] text-slate-400 font-medium" dir="ltr">${count}/${block.capacity}</span>
                     </div>
@@ -367,8 +397,8 @@ function renderSidebarAvailability() {
                     <span class="inline-flex items-center gap-1.5 font-semibold text-white">${icon(block.icon, 'w-3.5 h-3.5 text-indigo-300')}<span dir="ltr">${rangeOf(block)}</span></span>
                     <span class="inline-flex items-center gap-1 font-bold ${textColor}">${left === 0 ? icon('lock', 'w-3.5 h-3.5') : icon('armchair', 'w-3.5 h-3.5')}<span dir="ltr">${left}/${block.capacity}</span></span>
                 </div>
-                <div class="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden">
-                    <div class="h-full ${barColor} transition-all duration-500 rounded-full" style="width: ${percent}%"></div>
+                <div class="aero-track w-full h-3 rounded-sm overflow-hidden">
+                    <div class="aero-bar h-full ${barColor} transition-all duration-500" style="width: ${percent}%"></div>
                 </div>
             </div>`;
     }).join('');
@@ -446,7 +476,8 @@ function renderSchedule() {
             const mineHtml = isMine ? `
                 <span class="inline-flex items-center gap-1 text-[11px] text-emerald-300 font-semibold">
                     ${icon('badge-check', 'w-3.5 h-3.5')}${escapeHtml(t('you'))}
-                    <button data-action="cancel" data-id="${id}" title="${escapeHtml(t('modal_cancel_title'))}" aria-label="${escapeHtml(t('modal_cancel_title'))}" class="ms-1 inline-flex items-center justify-center w-6 h-6 rounded-md bg-purple-500/15 hover:bg-purple-500/30 text-purple-300 border border-purple-500/30">${icon('x', 'w-3.5 h-3.5')}</button>
+                    <button data-action="edit" data-id="${id}" title="${escapeHtml(t('edit_btn'))}" aria-label="${escapeHtml(t('edit_btn'))}" class="ms-1 inline-flex items-center justify-center w-6 h-6 rounded-md bg-indigo-500/20 hover:bg-indigo-500/40 text-indigo-200 border border-indigo-400/40">${icon('pencil', 'w-3.5 h-3.5')}</button>
+                    <button data-action="cancel" data-id="${id}" title="${escapeHtml(t('modal_cancel_title'))}" aria-label="${escapeHtml(t('modal_cancel_title'))}" class="inline-flex items-center justify-center w-6 h-6 rounded-md bg-purple-500/15 hover:bg-purple-500/30 text-purple-300 border border-purple-500/30">${icon('x', 'w-3.5 h-3.5')}</button>
                 </span>` : '';
 
             return `
@@ -457,7 +488,7 @@ function renderSchedule() {
                     </td>
                     <td class="py-3 px-4 whitespace-nowrap">
                         <div class="flex items-center gap-2.5">
-                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-xs font-bold text-white shrink-0">
+                            <div class="play-orb w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0">
                                 ${escapeHtml(Array.from(person.name)[0]?.toUpperCase() || '?')}
                             </div>
                             <div class="flex flex-col">
@@ -473,18 +504,18 @@ function renderSchedule() {
         }).join('');
 
         const dinnerBreakHtml = bIdx === 1 ? `
-            <div class="rounded-2xl p-4 bg-slate-900/60 border border-dashed border-slate-700 flex items-center justify-center gap-3 text-slate-300 text-xs sm:text-sm">
+            <div class="glass-card rounded-lg p-4 flex items-center justify-center gap-3 text-slate-300 text-xs sm:text-sm">
                 ${icon('utensils', 'w-5 h-5 text-amber-400 shrink-0')}
                 <span>${t('dinner_html')}</span>
             </div>` : '';
 
         return `
-            <div class="glass-card rounded-2xl overflow-hidden shadow-lg">
-                <div class="px-5 py-4 bg-slate-900/90 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
+            <div class="glass-card rounded-lg overflow-hidden">
+                <div class="titlebar px-4 py-3 flex flex-wrap items-center justify-between gap-2">
                     <div class="flex items-center gap-3">
-                        <span class="p-2 rounded-lg bg-indigo-500/15 text-indigo-300">${icon(block.icon, 'w-5 h-5')}</span>
+                        <span class="aero-btn p-2 rounded-md">${icon(block.icon, 'w-5 h-5')}</span>
                         <div>
-                            <span class="text-xs font-semibold uppercase tracking-wider text-indigo-400">${escapeHtml(titleOf(block))}</span>
+                            <span class="text-xs font-semibold uppercase tracking-wider text-indigo-200">${escapeHtml(titleOf(block))}</span>
                             <h3 class="text-lg font-extrabold text-white" dir="ltr">${rangeOf(block)}</h3>
                         </div>
                     </div>
@@ -496,7 +527,7 @@ function renderSchedule() {
                 <div class="overflow-x-auto">
                     <table class="w-full text-start border-collapse">
                         <thead>
-                            <tr class="border-b border-slate-800 text-[11px] font-semibold uppercase tracking-wider text-slate-400 bg-slate-950/40 text-start">
+                            <tr class="border-b border-white/10 text-[11px] font-semibold uppercase tracking-wider text-slate-300 bg-black/20 text-start">
                                 ${th('clock', 'th_time')}${th('user-round', 'th_presenter')}${th('lightbulb', 'th_topic')}${th('wrench', 'th_setup')}
                                 ${organizerMode ? th('shield', 'th_organize', 'text-end') : ''}
                             </tr>
@@ -556,11 +587,16 @@ document.getElementById('presentation-form').addEventListener('submit', async (e
     icons();
 
     try {
-        await backend.register({ name, blockId: blockRadio.value, topicMode, topicTitle, tech });
-        document.getElementById('presenter-name').value = '';
-        document.getElementById('topic-title').value = '';
-        document.querySelectorAll('input[name="tech"]').forEach(cb => { cb.checked = false; });
-        showToast(t('toast_success', { name }), 'success');
+        const data = { name, blockId: blockRadio.value, topicMode, topicTitle, tech };
+        if (editingId) {
+            await backend.update(editingId, data);
+            stopEdit(false);
+            showToast(t('toast_updated'), 'success');
+        } else {
+            await backend.register(data);
+            clearForm();
+            showToast(t('toast_success', { name }), 'success');
+        }
         switchTab('schedule');
     } catch (err) {
         console.error(err);
@@ -577,8 +613,44 @@ function handleTopicModeChange() {
 }
 document.querySelectorAll('input[name="topicMode"]').forEach(r => r.addEventListener('change', handleTopicModeChange));
 
-const TAB_ON = 'flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all bg-indigo-600 text-white shadow-md';
-const TAB_OFF = 'flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all text-slate-400 hover:text-white';
+function clearForm() {
+    document.getElementById('presenter-name').value = '';
+    document.getElementById('topic-title').value = '';
+    document.querySelectorAll('input[name="tech"]').forEach(cb => { cb.checked = false; });
+    document.querySelectorAll('input[name="blockId"]').forEach(r => { r.checked = false; });
+    document.querySelector('input[name="topicMode"][value="defined"]').checked = true;
+    handleTopicModeChange();
+}
+
+// Edição: só aparece para inscrições deste navegador; o banco confere a chave de novo
+function startEdit(id) {
+    const r = registrations.find(x => x.id === id);
+    if (!r || !myRegs()[id]) return;
+    editingId = id;
+    renderAll(); // libera o próprio bloco mesmo se estiver lotado
+    document.getElementById('presenter-name').value = r.name;
+    document.getElementById('topic-title').value = r.topicMode === 'defined' ? r.topicTitle : '';
+    const block = document.querySelector(`input[name="blockId"][value="${r.blockId}"]`);
+    if (block) block.checked = true;
+    const mode = document.querySelector(`input[name="topicMode"][value="${r.topicMode}"]`);
+    if (mode) mode.checked = true;
+    handleTopicModeChange();
+    document.querySelectorAll('input[name="tech"]').forEach(cb => { cb.checked = (r.tech || []).includes(cb.value); });
+    document.getElementById('edit-banner').classList.remove('hidden');
+    switchTab('form');
+    document.getElementById('presenter-name').focus();
+}
+
+function stopEdit(rerender = true) {
+    editingId = null;
+    document.getElementById('edit-banner').classList.add('hidden');
+    clearForm();
+    if (rerender) renderAll();
+}
+document.getElementById('edit-discard-btn').addEventListener('click', () => stopEdit());
+
+const TAB_ON = 'aero-btn flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2.5 rounded-md text-sm font-bold transition-all';
+const TAB_OFF = 'flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2.5 rounded-md text-sm font-semibold transition-all text-slate-200 border border-transparent hover:bg-white/10 hover:border-white/20';
 
 function switchTab(tab) {
     const isForm = tab === 'form';
@@ -604,9 +676,9 @@ function renderOrganizerButton() {
     btn.title = t(key);
     btn.setAttribute('aria-label', t(key));
     btn.setAttribute('aria-pressed', String(organizerMode));
-    btn.className = `inline-flex items-center justify-center w-9 h-9 rounded-xl border transition ${organizerMode
-        ? 'border-purple-500/60 bg-purple-600/30 text-purple-200'
-        : 'border-slate-700/80 bg-slate-900/80 text-purple-400 hover:text-purple-300 hover:border-slate-600'}`;
+    btn.className = `inline-flex items-center justify-center w-9 h-9 rounded-md transition ${organizerMode
+        ? 'aero-btn'
+        : 'glass-card text-indigo-100 hover:text-white'}`;
     document.getElementById('organizer-banner').classList.toggle('hidden', !organizerMode);
 }
 
@@ -636,7 +708,7 @@ document.getElementById('organizer-toggle-btn').addEventListener('click', () => 
         title: t('modal_org_title'),
         message: t('modal_org_msg'),
         okLabel: t('modal_org_ok'),
-        okClass: 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-600/20',
+        okClass: 'aero-btn',
         withInput: true,
         onConfirm: async (pin) => {
             try {
@@ -679,6 +751,7 @@ document.getElementById('schedule-blocks-container').addEventListener('click', (
             onConfirm: () => run(() => backend.remove(organizerPin, id), 'toast_removed')
         });
     }
+    if (action === 'edit' && person) return startEdit(id);
     if (action === 'cancel' && person) {
         return openModal({
             title: t('modal_cancel_title'),
@@ -697,7 +770,7 @@ function slotStartOf(person) {
 
 // Copiar texto formatado para WhatsApp (no idioma escolhido)
 document.getElementById('copy-whatsapp-btn').addEventListener('click', async () => {
-    let text = `🌹🛹 *${t('wa_header')}*\n📅 ${t('wa_date')}\n_${t('wa_tagline')}_\n\n`;
+    let text = `🛹 *${t('wa_header')}*\n📅 ${t('wa_date')}\n\n`;
 
     BLOCKS_CONFIG.forEach((block, bIdx) => {
         const regs = blockRegs(block.id);
@@ -739,7 +812,7 @@ async function copyText(text) {
 }
 
 // Modal de confirmação / PIN
-function openModal({ title, message, onConfirm, okLabel = t('confirm'), okClass = 'bg-purple-600 hover:bg-purple-500 shadow-purple-600/20', withInput = false }) {
+function openModal({ title, message, onConfirm, okLabel = t('confirm'), okClass = 'aero-btn', withInput = false }) {
     const modal = document.getElementById('confirm-modal');
     const form = document.getElementById('confirm-form');
     const input = document.getElementById('confirm-input');
@@ -749,7 +822,7 @@ function openModal({ title, message, onConfirm, okLabel = t('confirm'), okClass 
     document.getElementById('confirm-title').textContent = title;
     document.getElementById('confirm-message').textContent = message;
     okBtn.textContent = okLabel;
-    okBtn.className = `px-4 py-2.5 rounded-xl text-sm font-semibold text-white shadow-lg transition ${okClass}`;
+    okBtn.className = `px-4 py-2 rounded-md text-sm font-semibold transition ${okClass}`;
     input.value = '';
     input.classList.toggle('hidden', !withInput);
 
@@ -790,12 +863,12 @@ function showToast(message, type = 'info') {
     const colors = {
         success: 'bg-emerald-950/95 border-emerald-500/50 text-emerald-200',
         error: 'bg-purple-950/95 border-purple-500/50 text-purple-100',
-        info: 'bg-slate-900/95 border-indigo-500/50 text-slate-100'
+        info: 'bg-slate-850/95 border-indigo-300/60 text-slate-100'
     };
     const iconNames = { success: 'check-circle', error: 'alert-circle', info: 'info' };
 
     toast.setAttribute('role', type === 'error' ? 'alert' : 'status');
-    toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl border shadow-2xl backdrop-blur-md text-sm font-medium transform transition-all duration-300 ${colors[type] || colors.info}`;
+    toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-lg border shadow-2xl shadow-black/50 backdrop-blur-md text-sm font-medium transform transition-all duration-300 ${colors[type] || colors.info}`;
     toast.innerHTML = `${icon(iconNames[type] || 'info', 'w-5 h-5 shrink-0')}<span>${escapeHtml(message)}</span>`;
     container.appendChild(toast);
     icons();
