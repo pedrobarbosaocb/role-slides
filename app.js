@@ -329,7 +329,7 @@ function renderCounters() {
 
     const countEl = document.getElementById('total-remaining-count');
     countEl.textContent = remaining;
-    countEl.className = 'text-2xl font-extrabold ' + (remaining === 0 ? 'text-purple-400' : remaining <= 4 ? 'text-amber-400' : 'text-emerald-400');
+    countEl.className = 'text-2xl font-extrabold ' + (remaining === 0 ? 'text-purple-700' : remaining <= 4 ? 'text-amber-700' : 'text-emerald-700');
     document.getElementById('total-capacity').textContent = TOTAL_CAPACITY;
     document.getElementById('badge-registered-count').textContent = `${occupied}/${TOTAL_CAPACITY}`;
 
@@ -359,25 +359,25 @@ function renderFormBlocks() {
         const isChecked = !isFull && previouslySelected === block.id;
 
         const badgeHtml = left === 0
-            ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">${icon('lock', 'w-3 h-3')}${t('badge_full')}</span>`
+            ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-purple-500/20 text-purple-700 border border-purple-500/30">${icon('lock', 'w-3 h-3')}${t('badge_full')}</span>`
             : left === 1
-                ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">${icon('flame', 'w-3 h-3')}${t('badge_last')}</span>`
-                : `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">${icon('armchair', 'w-3 h-3')}<span dir="ltr">${left}</span></span>`;
+                ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-700 border border-amber-500/30">${icon('flame', 'w-3 h-3')}${t('badge_last')}</span>`
+                : `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-700 border border-emerald-500/30">${icon('armchair', 'w-3 h-3')}<span dir="ltr">${left}</span></span>`;
 
         return `
             <label class="block ${isFull ? 'cursor-not-allowed' : 'cursor-pointer'}" title="${escapeHtml(titleOf(block))}">
                 <input type="radio" name="blockId" value="${block.id}" class="sr-only radio-card" ${isFull ? 'disabled' : ''} ${isChecked ? 'checked' : ''}>
-                <div class="h-full p-4 rounded-md border border-white/15 bg-white/5 hover:border-white/35 hover:bg-white/10 transition flex flex-col justify-between gap-3">
+                <div class="h-full p-4 rounded-md border border-slate-400 bg-black/5 hover:border-slate-400 hover:bg-black/5 transition flex flex-col justify-between gap-3">
                     <div class="flex items-center gap-3">
-                        <span class="aero-btn p-2 rounded-md">${icon(block.icon, 'w-5 h-5')}</span>
+                        <span class="xp-btn p-2 rounded-md">${icon(block.icon, 'w-5 h-5')}</span>
                         <div>
-                            <div class="text-lg font-extrabold text-white leading-tight" dir="ltr">${rangeOf(block)}</div>
-                            <div class="text-[11px] text-slate-400">${escapeHtml(shortOf(block))}</div>
+                            <div class="text-lg font-extrabold text-slate-900 leading-tight" dir="ltr">${rangeOf(block)}</div>
+                            <div class="text-[11px] text-slate-600">${escapeHtml(shortOf(block))}</div>
                         </div>
                     </div>
-                    <div class="flex items-center justify-between pt-2 border-t border-white/10">
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-400">
                         ${badgeHtml}
-                        <span class="text-[11px] text-slate-400 font-medium" dir="ltr">${count}/${block.capacity}</span>
+                        <span class="text-[11px] text-slate-600 font-medium" dir="ltr">${count}/${block.capacity}</span>
                     </div>
                 </div>
             </label>`;
@@ -390,15 +390,15 @@ function renderSidebarAvailability() {
         const left = Math.max(0, block.capacity - count);
         const percent = Math.min(100, Math.round((count / block.capacity) * 100));
         const barColor = left === 0 ? 'bg-purple-500' : left <= 2 ? 'bg-amber-500' : 'bg-emerald-500';
-        const textColor = left === 0 ? 'text-purple-300' : 'text-emerald-400';
+        const textColor = left === 0 ? 'text-purple-700' : 'text-emerald-700';
         return `
             <div>
                 <div class="flex justify-between items-center text-xs mb-1.5">
-                    <span class="inline-flex items-center gap-1.5 font-semibold text-white">${icon(block.icon, 'w-3.5 h-3.5 text-indigo-300')}<span dir="ltr">${rangeOf(block)}</span></span>
+                    <span class="inline-flex items-center gap-1.5 font-semibold text-slate-900">${icon(block.icon, 'w-3.5 h-3.5 text-indigo-700')}<span dir="ltr">${rangeOf(block)}</span></span>
                     <span class="inline-flex items-center gap-1 font-bold ${textColor}">${left === 0 ? icon('lock', 'w-3.5 h-3.5') : icon('armchair', 'w-3.5 h-3.5')}<span dir="ltr">${left}/${block.capacity}</span></span>
                 </div>
-                <div class="aero-track w-full h-3 rounded-sm overflow-hidden">
-                    <div class="aero-bar h-full ${barColor} transition-all duration-500" style="width: ${percent}%"></div>
+                <div class="xp-track w-full h-3 rounded-sm overflow-hidden">
+                    <div class="xp-bar h-full ${barColor} transition-all duration-500" style="width: ${percent}%"></div>
                 </div>
             </div>`;
     }).join('');
@@ -406,18 +406,18 @@ function renderSidebarAvailability() {
 
 function topicHtml(person) {
     if (person.topicMode === 'defined') {
-        return `<span class="text-sm font-medium text-slate-200">"${escapeHtml(person.topicTitle)}"</span>`;
+        return `<span class="text-sm font-medium text-slate-800">"${escapeHtml(person.topicTitle)}"</span>`;
     }
     if (person.topicMode === 'secret') {
-        return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-purple-500/15 text-purple-300 border border-purple-500/30">${icon('venetian-mask', 'w-3.5 h-3.5')}${t('topic_secret')}</span>`;
+        return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-purple-500/15 text-purple-700 border border-purple-500/30">${icon('venetian-mask', 'w-3.5 h-3.5')}${t('topic_secret')}</span>`;
     }
-    return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30">${icon('hourglass', 'w-3.5 h-3.5')}${t('topic_tbd')}</span>`;
+    return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-500/15 text-amber-700 border border-amber-500/30">${icon('hourglass', 'w-3.5 h-3.5')}${t('topic_tbd')}</span>`;
 }
 
 const TECH = {
-    own_laptop: { icon: 'laptop', color: 'text-emerald-300', label: 'tech_laptop' },
-    send_file: { icon: 'file-up', color: 'text-sky-300', label: 'tech_file' },
-    audio_out: { icon: 'volume-2', color: 'text-amber-300', label: 'tech_audio' }
+    own_laptop: { icon: 'laptop', color: 'text-emerald-700', label: 'tech_laptop' },
+    send_file: { icon: 'file-up', color: 'text-sky-700', label: 'tech_file' },
+    audio_out: { icon: 'volume-2', color: 'text-amber-700', label: 'tech_audio' }
 };
 
 function techHtml(tech) {
@@ -425,7 +425,7 @@ function techHtml(tech) {
     if (!items.length) return '<span class="text-xs text-slate-500">—</span>';
     return items.map(k => {
         const label = escapeHtml(t(TECH[k].label));
-        return `<span title="${label}" aria-label="${label}" class="inline-flex items-center justify-center w-7 h-7 rounded-md bg-slate-800 ${TECH[k].color} border border-slate-700">${icon(TECH[k].icon, 'w-3.5 h-3.5')}</span>`;
+        return `<span title="${label}" aria-label="${label}" class="inline-flex items-center justify-center w-7 h-7 rounded-md bg-white ${TECH[k].color} border border-slate-400">${icon(TECH[k].icon, 'w-3.5 h-3.5')}</span>`;
     }).join('');
 }
 
@@ -444,16 +444,16 @@ function renderSchedule() {
 
             if (!person) {
                 return `
-                    <tr class="border-b border-slate-800/60 last:border-none hover:bg-slate-800/20 transition">
+                    <tr class="border-b border-slate-300 last:border-none hover:bg-blue-50 transition">
                         <td class="py-3 px-4 whitespace-nowrap" title="${note}">
-                            <div class="font-mono text-xs sm:text-sm font-bold text-slate-400" dir="ltr">${slot.start} - ${slot.end}</div>
+                            <div class="font-mono text-xs sm:text-sm font-bold text-slate-500" dir="ltr">${slot.start} - ${slot.end}</div>
                         </td>
                         <td class="py-3 px-4" colspan="${organizerMode ? 4 : 3}">
                             <div class="flex items-center justify-between gap-2">
-                                <span class="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-400/90 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full whitespace-nowrap">
+                                <span class="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700/90 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full whitespace-nowrap">
                                     ${icon('armchair', 'w-3.5 h-3.5')}${escapeHtml(t('slot_free', { n: slotIdx + 1 }))}
                                 </span>
-                                <button data-action="quick-select" data-block="${block.id}" title="${escapeHtml(t('reserve_slot'))}" aria-label="${escapeHtml(t('reserve_slot'))}" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/30 transition">
+                                <button data-action="quick-select" data-block="${block.id}" title="${escapeHtml(t('reserve_slot'))}" aria-label="${escapeHtml(t('reserve_slot'))}" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-700 border border-indigo-500/30 transition">
                                     ${icon('plus', 'w-4 h-4')}
                                 </button>
                             </div>
@@ -467,32 +467,32 @@ function renderSchedule() {
             const organizerControls = organizerMode ? `
                 <td class="py-3 px-4 text-end whitespace-nowrap">
                     <div class="inline-flex items-center gap-1">
-                        <button data-action="move" data-id="${id}" data-dir="-1" ${slotIdx === 0 ? 'disabled' : ''} title="${escapeHtml(t('move_up'))}" aria-label="${escapeHtml(t('move_up'))}" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed transition">${icon('arrow-up', 'w-3.5 h-3.5')}</button>
-                        <button data-action="move" data-id="${id}" data-dir="1" ${slotIdx === regs.length - 1 ? 'disabled' : ''} title="${escapeHtml(t('move_down'))}" aria-label="${escapeHtml(t('move_down'))}" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed transition">${icon('arrow-down', 'w-3.5 h-3.5')}</button>
-                        <button data-action="remove" data-id="${id}" title="${escapeHtml(t('remove_title'))}" aria-label="${escapeHtml(t('remove_title'))}" class="p-1.5 rounded-lg bg-purple-500/15 hover:bg-purple-500/30 text-purple-300 border border-purple-500/30 ms-1 transition">${icon('trash-2', 'w-3.5 h-3.5')}</button>
+                        <button data-action="move" data-id="${id}" data-dir="-1" ${slotIdx === 0 ? 'disabled' : ''} title="${escapeHtml(t('move_up'))}" aria-label="${escapeHtml(t('move_up'))}" class="p-1.5 rounded-lg bg-white hover:bg-blue-50 text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition">${icon('arrow-up', 'w-3.5 h-3.5')}</button>
+                        <button data-action="move" data-id="${id}" data-dir="1" ${slotIdx === regs.length - 1 ? 'disabled' : ''} title="${escapeHtml(t('move_down'))}" aria-label="${escapeHtml(t('move_down'))}" class="p-1.5 rounded-lg bg-white hover:bg-blue-50 text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition">${icon('arrow-down', 'w-3.5 h-3.5')}</button>
+                        <button data-action="remove" data-id="${id}" title="${escapeHtml(t('remove_title'))}" aria-label="${escapeHtml(t('remove_title'))}" class="p-1.5 rounded-lg bg-purple-500/15 hover:bg-purple-500/30 text-purple-700 border border-purple-500/30 ms-1 transition">${icon('trash-2', 'w-3.5 h-3.5')}</button>
                     </div>
                 </td>` : '';
 
             const mineHtml = isMine ? `
-                <span class="inline-flex items-center gap-1 text-[11px] text-emerald-300 font-semibold">
+                <span class="inline-flex items-center gap-1 text-[11px] text-emerald-700 font-semibold">
                     ${icon('badge-check', 'w-3.5 h-3.5')}${escapeHtml(t('you'))}
-                    <button data-action="edit" data-id="${id}" title="${escapeHtml(t('edit_btn'))}" aria-label="${escapeHtml(t('edit_btn'))}" class="ms-1 inline-flex items-center justify-center w-6 h-6 rounded-md bg-indigo-500/20 hover:bg-indigo-500/40 text-indigo-200 border border-indigo-400/40">${icon('pencil', 'w-3.5 h-3.5')}</button>
-                    <button data-action="cancel" data-id="${id}" title="${escapeHtml(t('modal_cancel_title'))}" aria-label="${escapeHtml(t('modal_cancel_title'))}" class="inline-flex items-center justify-center w-6 h-6 rounded-md bg-purple-500/15 hover:bg-purple-500/30 text-purple-300 border border-purple-500/30">${icon('x', 'w-3.5 h-3.5')}</button>
+                    <button data-action="edit" data-id="${id}" title="${escapeHtml(t('edit_btn'))}" aria-label="${escapeHtml(t('edit_btn'))}" class="ms-1 inline-flex items-center justify-center w-6 h-6 rounded-md bg-indigo-500/20 hover:bg-indigo-500/40 text-indigo-700 border border-indigo-500/40">${icon('pencil', 'w-3.5 h-3.5')}</button>
+                    <button data-action="cancel" data-id="${id}" title="${escapeHtml(t('modal_cancel_title'))}" aria-label="${escapeHtml(t('modal_cancel_title'))}" class="inline-flex items-center justify-center w-6 h-6 rounded-md bg-purple-500/15 hover:bg-purple-500/30 text-purple-700 border border-purple-500/30">${icon('x', 'w-3.5 h-3.5')}</button>
                 </span>` : '';
 
             return `
-                <tr class="border-b border-slate-800/60 last:border-none ${isMine ? 'bg-emerald-950/20' : 'bg-indigo-950/15'} hover:bg-indigo-950/30 transition">
+                <tr class="border-b border-slate-300 last:border-none ${isMine ? 'bg-emerald-50' : 'bg-blue-50'} hover:bg-blue-50 transition">
                     <td class="py-3 px-4 whitespace-nowrap" title="${note}">
-                        <div class="font-mono text-xs sm:text-sm font-bold text-indigo-300" dir="ltr">${slot.start} - ${slot.end}</div>
-                        <div class="text-[11px] text-slate-400">#${slotIdx + 1}</div>
+                        <div class="font-mono text-xs sm:text-sm font-bold text-indigo-700" dir="ltr">${slot.start} - ${slot.end}</div>
+                        <div class="text-[11px] text-slate-600">#${slotIdx + 1}</div>
                     </td>
                     <td class="py-3 px-4 whitespace-nowrap">
                         <div class="flex items-center gap-2.5">
-                            <div class="play-orb w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0">
+                            <div class="xp-avatar w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-slate-900 shrink-0">
                                 ${escapeHtml(Array.from(person.name)[0]?.toUpperCase() || '?')}
                             </div>
                             <div class="flex flex-col">
-                                <bdi class="font-bold text-white text-sm">${escapeHtml(person.name)}</bdi>
+                                <bdi class="font-bold text-slate-900 text-sm">${escapeHtml(person.name)}</bdi>
                                 ${mineHtml}
                             </div>
                         </div>
@@ -504,8 +504,8 @@ function renderSchedule() {
         }).join('');
 
         const dinnerBreakHtml = bIdx === 1 ? `
-            <div class="glass-card rounded-lg p-4 flex items-center justify-center gap-3 text-slate-300 text-xs sm:text-sm">
-                ${icon('utensils', 'w-5 h-5 text-amber-400 shrink-0')}
+            <div class="glass-card rounded-lg p-4 flex items-center justify-center gap-3 text-slate-700 text-xs sm:text-sm">
+                ${icon('utensils', 'w-5 h-5 text-amber-700 shrink-0')}
                 <span>${t('dinner_html')}</span>
             </div>` : '';
 
@@ -513,13 +513,13 @@ function renderSchedule() {
             <div class="glass-card rounded-lg overflow-hidden">
                 <div class="titlebar px-4 py-3 flex flex-wrap items-center justify-between gap-2">
                     <div class="flex items-center gap-3">
-                        <span class="aero-btn p-2 rounded-md">${icon(block.icon, 'w-5 h-5')}</span>
+                        <span class="xp-btn p-2 rounded-md">${icon(block.icon, 'w-5 h-5')}</span>
                         <div>
-                            <span class="text-xs font-semibold uppercase tracking-wider text-indigo-200">${escapeHtml(titleOf(block))}</span>
-                            <h3 class="text-lg font-extrabold text-white" dir="ltr">${rangeOf(block)}</h3>
+                            <span class="text-xs font-semibold uppercase tracking-wider text-indigo-700">${escapeHtml(titleOf(block))}</span>
+                            <h3 class="text-lg font-extrabold text-slate-900" dir="ltr">${rangeOf(block)}</h3>
                         </div>
                     </div>
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${left === 0 ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'}">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${left === 0 ? 'bg-purple-500/20 text-purple-700 border border-purple-500/30' : 'bg-emerald-500/15 text-emerald-700 border border-emerald-500/30'}">
                         ${left === 0 ? icon('lock', 'w-3.5 h-3.5') : icon('armchair', 'w-3.5 h-3.5')}
                         <span dir="ltr">${left}/${block.capacity}</span>
                     </span>
@@ -527,7 +527,7 @@ function renderSchedule() {
                 <div class="overflow-x-auto">
                     <table class="w-full text-start border-collapse">
                         <thead>
-                            <tr class="border-b border-white/10 text-[11px] font-semibold uppercase tracking-wider text-slate-300 bg-black/20 text-start">
+                            <tr class="border-b border-slate-400 text-[11px] font-semibold uppercase tracking-wider text-slate-700 bg-black/5 text-start">
                                 ${th('clock', 'th_time')}${th('user-round', 'th_presenter')}${th('lightbulb', 'th_topic')}${th('wrench', 'th_setup')}
                                 ${organizerMode ? th('shield', 'th_organize', 'text-end') : ''}
                             </tr>
@@ -649,8 +649,8 @@ function stopEdit(rerender = true) {
 }
 document.getElementById('edit-discard-btn').addEventListener('click', () => stopEdit());
 
-const TAB_ON = 'aero-btn flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2.5 rounded-md text-sm font-bold transition-all';
-const TAB_OFF = 'flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2.5 rounded-md text-sm font-semibold transition-all text-slate-200 border border-transparent hover:bg-white/10 hover:border-white/20';
+const TAB_ON = 'xp-tab xp-tab-on flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold';
+const TAB_OFF = 'xp-tab flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold';
 
 function switchTab(tab) {
     const isForm = tab === 'form';
@@ -677,8 +677,8 @@ function renderOrganizerButton() {
     btn.setAttribute('aria-label', t(key));
     btn.setAttribute('aria-pressed', String(organizerMode));
     btn.className = `inline-flex items-center justify-center w-9 h-9 rounded-md transition ${organizerMode
-        ? 'aero-btn'
-        : 'glass-card text-indigo-100 hover:text-white'}`;
+        ? 'xp-btn'
+        : 'glass-card text-indigo-700 hover:text-slate-900'}`;
     document.getElementById('organizer-banner').classList.toggle('hidden', !organizerMode);
 }
 
@@ -708,7 +708,7 @@ document.getElementById('organizer-toggle-btn').addEventListener('click', () => 
         title: t('modal_org_title'),
         message: t('modal_org_msg'),
         okLabel: t('modal_org_ok'),
-        okClass: 'aero-btn',
+        okClass: 'xp-btn-green',
         withInput: true,
         onConfirm: async (pin) => {
             try {
@@ -812,7 +812,7 @@ async function copyText(text) {
 }
 
 // Modal de confirmação / PIN
-function openModal({ title, message, onConfirm, okLabel = t('confirm'), okClass = 'aero-btn', withInput = false }) {
+function openModal({ title, message, onConfirm, okLabel = t('confirm'), okClass = 'xp-btn-green', withInput = false }) {
     const modal = document.getElementById('confirm-modal');
     const form = document.getElementById('confirm-form');
     const input = document.getElementById('confirm-input');
@@ -861,14 +861,14 @@ function showToast(message, type = 'info') {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
     const colors = {
-        success: 'bg-emerald-950/95 border-emerald-500/50 text-emerald-200',
-        error: 'bg-purple-950/95 border-purple-500/50 text-purple-100',
-        info: 'bg-slate-850/95 border-indigo-300/60 text-slate-100'
+        success: 'bg-emerald-50 border-emerald-500/50 text-emerald-700',
+        error: 'bg-purple-50 border-purple-500/50 text-purple-700',
+        info: 'bg-yellow-50 border-indigo-500/60 text-slate-800'
     };
     const iconNames = { success: 'check-circle', error: 'alert-circle', info: 'info' };
 
     toast.setAttribute('role', type === 'error' ? 'alert' : 'status');
-    toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-lg border shadow-2xl shadow-black/50 backdrop-blur-md text-sm font-medium transform transition-all duration-300 ${colors[type] || colors.info}`;
+    toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-lg border xp-balloon backdrop-blur-md text-sm font-medium transform transition-all duration-300 ${colors[type] || colors.info}`;
     toast.innerHTML = `${icon(iconNames[type] || 'info', 'w-5 h-5 shrink-0')}<span>${escapeHtml(message)}</span>`;
     container.appendChild(toast);
     icons();
@@ -899,6 +899,7 @@ const musicBtn = document.getElementById('music-btn');
 function renderMusic() {
     const playing = !audio.paused;
     musicBtn.classList.toggle('paused', !playing);
+    document.body.classList.toggle('music-paused', !playing);
     musicBtn.setAttribute('aria-pressed', String(playing));
     musicBtn.setAttribute('aria-label', t(playing ? 'music_pause' : 'music_play'));
     musicBtn.title = t(playing ? 'music_pause' : 'music_play');
