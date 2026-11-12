@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#090d16">
+    <meta name="description" content="Inscrição nos horários de apresentação do Rolê de Slides — sábado, 14/11, a partir das 12h.">
+    <title>Rolê de Slides🛹 - Escolha seu Horário!</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛹</text></svg>">
+    <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: { slate: { 850: '#151e32', 950: '#090d16' } }
+                }
+            }
+        }
+    </script>
+    <!-- gerado no deploy (GitHub Actions); vazio = modo local -->
+    <script src="./config.js"></script>
+    <style>
+        body {
+            background-color: #090d16;
+            background-image:
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.12) 0px, transparent 50%),
+                radial-gradient(at 50% 100%, rgba(16, 185, 129, 0.08) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        .glass-card {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .radio-card:checked + div {
+            border-color: #818cf8;
+            background-color: rgba(99, 102, 241, 0.15);
+            box-shadow: 0 0 0 1px #818cf8;
+        }
+        .radio-card:focus-visible + div { outline: 2px solid #818cf8; outline-offset: 2px; }
+        .radio-card:disabled + div {
+            opacity: 0.45;
+            cursor: not-allowed;
+            background-color: rgba(15, 23, 42, 0.4);
+        }
+        .cd-num { font-variant-numeric: tabular-nums; }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen antialiased selection:bg-indigo-500 selection:text-white pb-16">
+
+    <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+    <!-- Modal de confirmação / PIN -->
+    <div id="confirm-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+        <form id="confirm-form" class="glass-card rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-700/80">
+            <div class="flex items-center gap-3 text-amber-400 mb-3">
+                <div class="p-2.5 bg-amber-500/10 rounded-xl">
+                    <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+                </div>
+                <h3 id="confirm-title" class="text-lg font-bold text-white">Confirmar Ação</h3>
+            </div>
+            <p id="confirm-message" class="text-slate-300 text-sm leading-relaxed mb-4">Tem certeza?</p>
+            <input id="confirm-input" type="password" inputmode="numeric" autocomplete="off" maxlength="8"
+                class="hidden w-full mb-5 px-4 py-3 bg-slate-900/90 border border-slate-700 rounded-xl text-white text-center tracking-[0.4em] text-lg placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                placeholder="••••">
+            <div class="flex justify-end gap-3">
+                <button type="button" id="confirm-cancel-btn" class="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 transition">Cancelar</button>
+                <button type="submit" id="confirm-ok-btn" class="px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-rose-600 hover:bg-rose-500 shadow-lg shadow-rose-600/20 transition">Confirmar</button>
+            </div>
+        </form>
+    </div>
+
+    <header class="pt-8 pb-6 px-4 sm:px-6 max-w-5xl mx-auto">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/15 border border-indigo-400/25 text-indigo-300 text-xs font-semibold tracking-wide uppercase mb-3">
+                    <span class="relative flex h-2 w-2">
+                        <span id="status-ping" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                        <span id="status-dot" class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                    </span>
+                    <span id="connection-status">Conectando…</span>
+                </div>
+                <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight text-white flex items-center gap-2.5 flex-wrap">
+                    <span>Rolê de Slides🛹</span>
+                    <span class="text-lg sm:text-2xl font-semibold text-indigo-300">• Escolha seu Horário!</span>
+                </h1>
+                <p class="text-slate-400 mt-2 text-sm sm:text-base max-w-2xl">
+                    Garanta o seu horário antes que acabe! São <strong class="text-slate-200">16 vagas</strong> divididas em 3 blocos. Assim que alguém escolhe, a vaga diminui automaticamente para todo mundo.
+                </p>
+            </div>
+
+            <div class="glass-card rounded-2xl p-4 flex items-center gap-4 self-start md:self-center shrink-0">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/25">
+                    <i data-lucide="users" class="w-6 h-6 text-white"></i>
+                </div>
+                <div>
+                    <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Vagas Restantes</div>
+                    <div class="flex items-baseline gap-1.5">
+                        <span id="total-remaining-count" class="text-2xl font-extrabold text-emerald-400">16</span>
+                        <span class="text-sm text-slate-400 font-medium">/ <span id="total-capacity">16</span> totais</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Countdown -->
+        <div id="countdown" class="mt-6 glass-card rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-indigo-500/20">
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 rounded-xl bg-indigo-500/15 text-indigo-300">
+                    <i data-lucide="calendar-heart" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <div id="countdown-label" class="text-xs font-semibold uppercase tracking-wider text-indigo-300">O rolê começa em</div>
+                    <div class="text-sm text-slate-300 font-medium">Sábado, 14/11 • 12h</div>
+                </div>
+            </div>
+            <div id="countdown-clock" class="grid grid-cols-4 gap-2 sm:gap-3" aria-live="off">
+                <div class="text-center rounded-xl bg-slate-900/80 border border-slate-800 px-2 sm:px-4 py-2 min-w-[3.75rem]">
+                    <div id="cd-days" class="cd-num text-2xl sm:text-3xl font-extrabold text-white">--</div>
+                    <div class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">dias</div>
+                </div>
+                <div class="text-center rounded-xl bg-slate-900/80 border border-slate-800 px-2 sm:px-4 py-2 min-w-[3.75rem]">
+                    <div id="cd-hours" class="cd-num text-2xl sm:text-3xl font-extrabold text-white">--</div>
+                    <div class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">horas</div>
+                </div>
+                <div class="text-center rounded-xl bg-slate-900/80 border border-slate-800 px-2 sm:px-4 py-2 min-w-[3.75rem]">
+                    <div id="cd-mins" class="cd-num text-2xl sm:text-3xl font-extrabold text-white">--</div>
+                    <div class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">min</div>
+                </div>
+                <div class="text-center rounded-xl bg-indigo-600/20 border border-indigo-500/40 px-2 sm:px-4 py-2 min-w-[3.75rem]">
+                    <div id="cd-secs" class="cd-num text-2xl sm:text-3xl font-extrabold text-indigo-200">--</div>
+                    <div class="text-[10px] uppercase tracking-wider text-indigo-300 font-semibold">seg</div>
+                </div>
+            </div>
+            <div id="countdown-live" class="hidden text-xl sm:text-2xl font-extrabold text-emerald-300">🛹 O rolê começou!</div>
+        </div>
+
+        <div class="mt-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+            <div class="flex bg-slate-900/90 p-1.5 rounded-xl border border-slate-800 w-full sm:w-auto">
+                <button id="tab-form-btn" data-tab="form" class="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all bg-indigo-600 text-white shadow-md">
+                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                    <span>Garantir Vaga</span>
+                </button>
+                <button id="tab-schedule-btn" data-tab="schedule" class="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all text-slate-400 hover:text-white">
+                    <i data-lucide="calendar-clock" class="w-4 h-4"></i>
+                    <span>Cronograma</span>
+                    <span id="badge-registered-count" class="ml-1 px-2 py-0.5 text-xs rounded-full bg-slate-800 text-slate-300">0</span>
+                </button>
+            </div>
+            <div class="flex items-center justify-between sm:justify-end gap-3">
+                <button id="organizer-toggle-btn" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold border border-slate-700/80 bg-slate-900/80 text-slate-300 hover:text-white hover:border-slate-600 transition">
+                    <i data-lucide="shield" class="w-4 h-4 text-purple-400"></i>
+                    <span id="organizer-btn-label">Modo Organizador: OFF</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-4 sm:px-6">
+
+        <!-- ABA 1: FORMULÁRIO -->
+        <section id="view-form" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <div class="lg:col-span-8 glass-card rounded-2xl p-5 sm:p-8 shadow-xl">
+                <form id="presentation-form" class="space-y-7" novalidate>
+                    <div>
+                        <label for="presenter-name" class="block text-sm font-semibold text-white mb-2">
+                            1. Qual é o seu nome (ou como quer ser chamado)? <span class="text-rose-400">*</span>
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                <i data-lucide="user" class="w-5 h-5"></i>
+                            </div>
+                            <input type="text" id="presenter-name" name="name" required maxlength="40" autocomplete="nickname"
+                                placeholder="Ex: João, Gabi, Capitão Slide..."
+                                class="w-full pl-11 pr-4 py-3 bg-slate-900/90 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="block text-sm font-semibold text-white">
+                                2. Escolha o seu bloco de horário <span class="text-rose-400">*</span>
+                            </span>
+                            <span class="text-xs text-slate-400">Atualiza ao vivo</span>
+                        </div>
+                        <div id="blocks-radio-container" class="grid grid-cols-1 sm:grid-cols-3 gap-3"></div>
+                    </div>
+
+                    <div>
+                        <span class="block text-sm font-semibold text-white mb-2">
+                            3. Como você quer lidar com o tema da sua apresentação? <span class="text-rose-400">*</span>
+                        </span>
+                        <div class="space-y-2.5">
+                            <label class="block cursor-pointer">
+                                <input type="radio" name="topicMode" value="defined" class="sr-only radio-card" checked>
+                                <div class="p-3.5 rounded-xl border border-slate-700/90 bg-slate-900/60 hover:border-slate-600 transition flex items-start gap-3">
+                                    <div class="mt-0.5 text-indigo-400"><i data-lucide="sparkles" class="w-5 h-5"></i></div>
+                                    <div>
+                                        <div class="text-sm font-semibold text-white">Já tenho um tema e vou escrever abaixo</div>
+                                        <div class="text-xs text-slate-400 mt-0.5">O título aparecerá no cronograma para gerar hype!</div>
+                                    </div>
+                                </div>
+                            </label>
+
+                            <div id="topic-input-wrapper" class="pl-2 sm:pl-4 pt-1 pb-2">
+                                <label for="topic-title" class="block text-xs font-medium text-indigo-300 mb-1.5">
+                                    Qual será o tema da sua apresentação? <span class="text-rose-400">*</span>
+                                </label>
+                                <input type="text" id="topic-title" name="topicTitle" maxlength="90"
+                                    placeholder="Ex: Teoria da conspiração dos pombos, Ranking de piores encontros..."
+                                    class="w-full px-4 py-3 bg-slate-950/90 border border-indigo-500/40 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition text-sm">
+                            </div>
+
+                            <label class="block cursor-pointer">
+                                <input type="radio" name="topicMode" value="secret" class="sr-only radio-card">
+                                <div class="p-3.5 rounded-xl border border-slate-700/90 bg-slate-900/60 hover:border-slate-600 transition flex items-start gap-3">
+                                    <div class="mt-0.5 text-purple-400"><i data-lucide="eye-off" class="w-5 h-5"></i></div>
+                                    <div>
+                                        <div class="text-sm font-semibold text-white">Quero manter meu tema em segredo / surpresa (anonimato)</div>
+                                        <div class="text-xs text-slate-400 mt-0.5">Ninguém saberá sobre o que você vai falar até você abrir o primeiro slide.</div>
+                                    </div>
+                                </div>
+                            </label>
+
+                            <label class="block cursor-pointer">
+                                <input type="radio" name="topicMode" value="tbd" class="sr-only radio-card">
+                                <div class="p-3.5 rounded-xl border border-slate-700/90 bg-slate-900/60 hover:border-slate-600 transition flex items-start gap-3">
+                                    <div class="mt-0.5 text-amber-400"><i data-lucide="clock" class="w-5 h-5"></i></div>
+                                    <div>
+                                        <div class="text-sm font-semibold text-white">Ainda não decidi o tema (sem tema por enquanto)</div>
+                                        <div class="text-xs text-slate-400 mt-0.5">Garante a vaga agora e pensa no conteúdo depois.</div>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <span class="block text-sm font-semibold text-white mb-2">
+                            4. Vai precisar de algo específico para apresentar? <span class="text-slate-400 font-normal">(Opcional)</span>
+                        </span>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                            <label class="cursor-pointer">
+                                <input type="checkbox" name="tech" value="own_laptop" class="peer sr-only">
+                                <div class="h-full p-3 rounded-xl border border-slate-700/90 bg-slate-900/60 peer-checked:border-emerald-500 peer-checked:bg-emerald-500/10 peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500 hover:border-slate-600 transition flex items-center gap-2.5">
+                                    <i data-lucide="laptop" class="w-4 h-4 text-emerald-400 shrink-0"></i>
+                                    <span class="text-xs font-medium text-slate-200">Vou levar meu próprio notebook</span>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="checkbox" name="tech" value="send_file" class="peer sr-only">
+                                <div class="h-full p-3 rounded-xl border border-slate-700/90 bg-slate-900/60 peer-checked:border-emerald-500 peer-checked:bg-emerald-500/10 peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500 hover:border-slate-600 transition flex items-center gap-2.5">
+                                    <i data-lucide="file-up" class="w-4 h-4 text-sky-400 shrink-0"></i>
+                                    <span class="text-xs font-medium text-slate-200">Vou mandar o arquivo antes (PC da casa)</span>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="checkbox" name="tech" value="audio_out" class="peer sr-only">
+                                <div class="h-full p-3 rounded-xl border border-slate-700/90 bg-slate-900/60 peer-checked:border-emerald-500 peer-checked:bg-emerald-500/10 peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-500 hover:border-slate-600 transition flex items-center gap-2.5">
+                                    <i data-lucide="volume-2" class="w-4 h-4 text-amber-400 shrink-0"></i>
+                                    <span class="text-xs font-medium text-slate-200">Preciso de saída de áudio (som/vídeo)</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="pt-2">
+                        <button type="submit" id="submit-btn" class="w-full py-3.5 px-6 rounded-xl font-bold text-white bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 hover:from-indigo-500 hover:to-purple-500 shadow-lg shadow-indigo-600/30 active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-base disabled:opacity-50 disabled:cursor-not-allowed">
+                            <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+                            <span>Confirmar Minha Vaga Agora</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="lg:col-span-4 space-y-5">
+                <div class="glass-card rounded-2xl p-5">
+                    <h2 class="text-sm font-bold uppercase tracking-wider text-slate-300 mb-4 flex items-center gap-2">
+                        <i data-lucide="bar-chart-2" class="w-4 h-4 text-indigo-400"></i>
+                        Disponibilidade por Bloco
+                    </h2>
+                    <div id="sidebar-availability-list" class="space-y-4"></div>
+                </div>
+
+                <div class="glass-card rounded-2xl p-5 border-indigo-500/20">
+                    <h3 class="text-sm font-bold text-white mb-2.5 flex items-center gap-2">
+                        <i data-lucide="info" class="w-4 h-4 text-amber-400"></i>
+                        Como vai funcionar?
+                    </h3>
+                    <ul class="space-y-2.5 text-xs text-slate-300 leading-relaxed">
+                        <li class="flex items-start gap-2">
+                            <span class="text-indigo-400 font-bold">•</span>
+                            <span><strong>Chegada:</strong> sábado, 14/11, a partir das 12h. As apresentações começam às 14h.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-indigo-400 font-bold">•</span>
+                            <span><strong>Tempo ideal:</strong> 10 a 15 minutos por apresentação + 5 min para perguntas, risadas e troca de notebook.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-indigo-400 font-bold">•</span>
+                            <span><strong>Intervalo Jantar:</strong> Das 18h às 20h teremos uma pausa de 2 horas para comer e descansar.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-indigo-400 font-bold">•</span>
+                            <span><strong>Ordem:</strong> A ordem dentro de cada bloco segue a ordem de inscrição (ou ajuste do anfitrião).</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-indigo-400 font-bold">•</span>
+                            <span><strong>Desistiu?</strong> No cronograma, a sua inscrição tem um botão para cancelar (vale no mesmo celular/navegador em que você se inscreveu).</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- ABA 2: CRONOGRAMA -->
+        <section id="view-schedule" class="hidden space-y-6">
+            <div class="glass-card rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i data-lucide="list-ordered" class="w-5 h-5 text-indigo-400"></i>
+                        Cronograma Minuto a Minuto
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Acompanhe os horários exatos de cada apresentação e quem já garantiu lugar.</p>
+                </div>
+                <button id="copy-whatsapp-btn" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/20 transition">
+                    <i data-lucide="share-2" class="w-4 h-4"></i>
+                    <span>Copiar Cronograma p/ WhatsApp</span>
+                </button>
+            </div>
+
+            <div id="organizer-banner" class="hidden rounded-2xl p-4 bg-purple-950/50 border border-purple-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 rounded-xl bg-purple-500/20 text-purple-300"><i data-lucide="shield-check" class="w-5 h-5"></i></div>
+                    <div>
+                        <div class="text-sm font-bold text-purple-200">Modo Organizador Ativado</div>
+                        <div class="text-xs text-purple-300/80">Você pode reordenar os apresentadores dentro do bloco ou remover inscrições para liberar vagas.</div>
+                    </div>
+                </div>
+                <button id="reset-all-btn" class="px-3 py-2 rounded-xl text-xs font-semibold bg-rose-600/20 hover:bg-rose-600/40 text-rose-300 border border-rose-500/30 transition self-start sm:self-center">
+                    Resetar Todas as Vagas
+                </button>
+            </div>
+
+            <div id="schedule-blocks-container" class="space-y-6"></div>
+        </section>
+    </main>
+
+    <script type="module" src="./app.js"></script>
+</body>
+</html>

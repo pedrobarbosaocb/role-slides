@@ -1,0 +1,47 @@
+name: Deploy GitHub Pages
+
+# Publica o site estático no Pages. Com as variáveis do repositório SUPABASE_URL e
+# SUPABASE_ANON_KEY (Settings → Secrets and variables → Actions → Variables),
+# usa o backend no Supabase e as vagas são compartilhadas; sem elas, cai no modo
+# local (dados só no navegador). O Pages exige repositório público (ou plano pago).
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Gera config.js
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+        run: |
+          mkdir -p _site
+          cp index.html app.js _site/
+          node -e 'const c={supabaseUrl:process.env.SUPABASE_URL||"",supabaseAnonKey:process.env.SUPABASE_ANON_KEY||""};process.stdout.write("window.ROLE_CONFIG = "+JSON.stringify(c)+";\n")' > _site/config.js
+          cat _site/config.js
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
