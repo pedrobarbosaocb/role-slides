@@ -1,68 +1,52 @@
 // Rolê de Slides — inscrição nos horários de apresentação.
 // Backend: Supabase (RPCs no schema privado "rs", ver supabase/migrations) quando
 // config.js traz URL e chave; senão, modo local (localStorage, só neste navegador).
+import { LANGS, detectLang, setLang, getLang, t } from './i18n.js';
 
 // =========================================================================
 // 1. CONFIGURAÇÃO DO EVENTO, BLOCOS E SLOTS
 // =========================================================================
 const EVENT_START = new Date('2026-11-14T12:00:00-03:00'); // sábado, 14/11, 12h (Brasília)
 
+const swap = (a, b) => ({ key: 'note_swap', vars: { a, b } });
 const BLOCKS_CONFIG = [
     {
-        id: 'block_1',
-        title: 'Bloco 1 • Tarde Parte 1',
-        timeRange: '14h às 16h',
-        capacity: 5,
+        id: 'block_1', n: 1, from: 14, to: 16, capacity: 5, icon: 'sun',
         slots: [
-            { start: '14:00', end: '14:20', note: '15 min slide + 5 min troca' },
-            { start: '14:20', end: '14:40', note: '15 min slide + 5 min troca' },
-            { start: '14:40', end: '15:00', note: '15 min slide + 5 min troca' },
-            { start: '15:00', end: '15:20', note: '15 min slide + 5 min troca' },
-            { start: '15:20', end: '15:45', note: '15 min slide + encerramento bloco' }
+            { start: '14:00', end: '14:20', note: swap(15, 5) },
+            { start: '14:20', end: '14:40', note: swap(15, 5) },
+            { start: '14:40', end: '15:00', note: swap(15, 5) },
+            { start: '15:00', end: '15:20', note: swap(15, 5) },
+            { start: '15:20', end: '15:45', note: { key: 'note_close_block' } }
         ]
     },
     {
-        id: 'block_2',
-        title: 'Bloco 2 • Tarde Parte 2',
-        timeRange: '16h às 18h',
-        capacity: 5,
+        id: 'block_2', n: 2, from: 16, to: 18, capacity: 5, icon: 'sunset',
         slots: [
-            { start: '16:00', end: '16:20', note: '15 min slide + 5 min troca' },
-            { start: '16:20', end: '16:40', note: '15 min slide + 5 min troca' },
-            { start: '16:40', end: '17:00', note: '15 min slide + 5 min troca' },
-            { start: '17:00', end: '17:20', note: '15 min slide + 5 min troca' },
-            { start: '17:20', end: '17:45', note: '15 min slide + pausa jantar' }
+            { start: '16:00', end: '16:20', note: swap(15, 5) },
+            { start: '16:20', end: '16:40', note: swap(15, 5) },
+            { start: '16:40', end: '17:00', note: swap(15, 5) },
+            { start: '17:00', end: '17:20', note: swap(15, 5) },
+            { start: '17:20', end: '17:45', note: { key: 'note_dinner' } }
         ]
     },
     {
-        id: 'block_3',
-        title: 'Bloco 3 • Sessão Noturna',
-        timeRange: '20h às 22h',
-        capacity: 6,
+        id: 'block_3', n: 3, from: 20, to: 22, capacity: 6, icon: 'moon',
         slots: [
-            { start: '20:00', end: '20:18', note: '14 min slide + 4 min troca' },
-            { start: '20:18', end: '20:36', note: '14 min slide + 4 min troca' },
-            { start: '20:36', end: '20:54', note: '14 min slide + 4 min troca' },
-            { start: '20:54', end: '21:12', note: '14 min slide + 4 min troca' },
-            { start: '21:12', end: '21:30', note: '14 min slide + 4 min troca' },
-            { start: '21:30', end: '21:50', note: '15 min slide + encerramento' }
+            { start: '20:00', end: '20:18', note: swap(14, 4) },
+            { start: '20:18', end: '20:36', note: swap(14, 4) },
+            { start: '20:36', end: '20:54', note: swap(14, 4) },
+            { start: '20:54', end: '21:12', note: swap(14, 4) },
+            { start: '21:12', end: '21:30', note: swap(14, 4) },
+            { start: '21:30', end: '21:50', note: { key: 'note_close' } }
         ]
     }
 ];
 
 const TOTAL_CAPACITY = BLOCKS_CONFIG.reduce((s, b) => s + b.capacity, 0);
-
-const ERROR_MESSAGES = {
-    full: 'Ops! Esse horário acabou de lotar. Escolha outro bloco!',
-    bad_name: 'Nome inválido (até 40 caracteres).',
-    bad_topic: 'Tema inválido (até 90 caracteres).',
-    bad_block: 'Bloco inválido. Recarregue a página.',
-    bad_pin: 'PIN incorreto.',
-    no_pin: 'O PIN do organizador ainda não foi configurado no banco.',
-    throttled: 'Muitas tentativas erradas. Espere 10 minutos.',
-    forbidden: 'Não foi possível cancelar: essa inscrição não é deste navegador.',
-    not_found: 'Inscrição não encontrada (talvez já tenha sido removida).'
-};
+const rangeOf = b => t('range', { a: b.from, b: b.to });
+const shortOf = b => t(`block_${b.n}`);
+const titleOf = b => `${t('block', { n: b.n })} • ${shortOf(b)}`;
 
 // =========================================================================
 // 2. ESTADO E PERSISTÊNCIA
@@ -72,6 +56,8 @@ let organizerMode = false;
 let organizerPin = null;
 let backend = null;
 let busy = false;
+let statusKey = 'status_connecting';
+let statusOk = false;
 
 const LOCAL_DATA_KEY = 'role_slides_local_v1';
 const MY_KEYS = 'role_slides_my_regs_v1';
@@ -100,8 +86,9 @@ function randomKey() {
 }
 
 class RpcError extends Error {
-    constructor(code) { super(ERROR_MESSAGES[code] || `Erro: ${code}`); this.code = code; }
+    constructor(code) { super(code); this.code = code; }
 }
+const errorText = err => (err?.code ? t(`err_${err.code}`) : t('err_generic'));
 
 // ---- Supabase
 async function createSupabaseBackend(url, anonKey) {
@@ -110,7 +97,7 @@ async function createSupabaseBackend(url, anonKey) {
 
     async function rpc(fn, args) {
         const { data, error } = await sb.rpc(fn, args);
-        if (error) throw new Error(error.message || 'Falha de conexão');
+        if (error) throw new Error(error.message || 'rpc');
         if (data && typeof data === 'object' && 'error' in data) throw new RpcError(data.error);
         return data;
     }
@@ -215,16 +202,22 @@ async function refresh() {
                 renderAll();
             } catch (err) {
                 console.error(err);
-                showToast('Erro de conexão com o banco. Verifique sua internet.', 'error');
+                showToast(t('err_connection'), 'error');
             }
         } while (refreshAgain);
     })();
     try { await refreshing; } finally { refreshing = null; }
 }
 
-function setStatus(text, ok) {
-    document.getElementById('connection-status').textContent = text;
-    const color = ok ? 'emerald' : 'amber';
+function setStatus(key, ok) {
+    statusKey = key;
+    statusOk = ok;
+    renderStatus();
+}
+
+function renderStatus() {
+    document.getElementById('connection-status').textContent = t(statusKey);
+    const color = statusOk ? 'emerald' : 'amber';
     document.getElementById('status-ping').className = `animate-ping absolute inline-flex h-full w-full rounded-full bg-${color}-400 opacity-75`;
     document.getElementById('status-dot').className = `relative inline-flex rounded-full h-2 w-2 bg-${color}-500`;
 }
@@ -236,8 +229,8 @@ async function initStorage() {
             backend = await createSupabaseBackend(cfg.supabaseUrl, cfg.supabaseAnonKey);
         } catch (err) {
             console.error('Falha ao carregar o Supabase:', err);
-            setStatus('Sem conexão', false);
-            showToast('Não foi possível conectar. Recarregue a página.', 'error');
+            setStatus('status_offline', false);
+            showToast(t('err_cannot_connect'), 'error');
             return;
         }
     } else {
@@ -251,8 +244,8 @@ async function initStorage() {
     backend.subscribe(
         () => refresh(),
         ok => {
-            if (!backend.live) return setStatus('Modo Local (só neste navegador)', false);
-            setStatus(ok ? 'Vagas em Tempo Real' : 'Reconectando…', ok);
+            if (!backend.live) return setStatus('status_local', false);
+            setStatus(ok ? 'status_live' : 'status_reconnecting', ok);
             if (ok) refresh();
         }
     );
@@ -268,13 +261,12 @@ async function initStorage() {
 // =========================================================================
 function tickCountdown() {
     const diff = EVENT_START.getTime() - Date.now();
-    const clock = document.getElementById('countdown-clock');
-    const live = document.getElementById('countdown-live');
-    const label = document.getElementById('countdown-label');
     if (diff <= 0) {
-        clock.classList.add('hidden');
-        live.classList.remove('hidden');
-        label.textContent = 'É hoje!';
+        document.getElementById('countdown-clock').classList.add('hidden');
+        document.getElementById('countdown-live').classList.remove('hidden');
+        const label = document.getElementById('countdown-label');
+        label.dataset.i18n = 'cd_label_today';
+        label.textContent = t('cd_label_today');
         return false;
     }
     const s = Math.floor(diff / 1000);
@@ -295,6 +287,7 @@ function startCountdown() {
 // 4. RENDERIZAÇÃO
 // =========================================================================
 const icons = () => window.lucide && lucide.createIcons();
+const icon = (name, cls = 'w-4 h-4') => `<i data-lucide="${name}" class="${cls}"></i>`;
 const blockRegs = blockId => registrations
     .filter(r => r.blockId === blockId)
     .sort((a, b) => a.orderIndex - b.orderIndex || a.createdAt - b.createdAt);
@@ -313,7 +306,7 @@ function renderCounters() {
 
     const countEl = document.getElementById('total-remaining-count');
     countEl.textContent = remaining;
-    countEl.className = 'text-2xl font-extrabold ' + (remaining === 0 ? 'text-rose-400' : remaining <= 4 ? 'text-amber-400' : 'text-emerald-400');
+    countEl.className = 'text-2xl font-extrabold ' + (remaining === 0 ? 'text-purple-400' : remaining <= 4 ? 'text-amber-400' : 'text-emerald-400');
     document.getElementById('total-capacity').textContent = TOTAL_CAPACITY;
     document.getElementById('badge-registered-count').textContent = `${occupied}/${TOTAL_CAPACITY}`;
 
@@ -321,8 +314,8 @@ function renderCounters() {
     const submitBtn = document.getElementById('submit-btn');
     submitBtn.disabled = remaining === 0;
     submitBtn.innerHTML = remaining === 0
-        ? `<i data-lucide="lock" class="w-5 h-5"></i><span>Todas as ${TOTAL_CAPACITY} Vagas Esgotadas!</span>`
-        : `<i data-lucide="check-circle-2" class="w-5 h-5"></i><span>Confirmar Minha Vaga Agora</span>`;
+        ? `${icon('lock', 'w-5 h-5')}<span>${t('submit_full', { n: TOTAL_CAPACITY })}</span>`
+        : `${icon('stamp', 'w-5 h-5')}<span>${t('submit')}</span>`;
 }
 
 function renderFormBlocks() {
@@ -336,22 +329,25 @@ function renderFormBlocks() {
         const isChecked = !isFull && previouslySelected === block.id;
 
         const badgeHtml = isFull
-            ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">ESGOTADO</span>`
+            ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">${icon('lock', 'w-3 h-3')}${t('badge_full')}</span>`
             : left === 1
-                ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">ÚLTIMA VAGA!</span>`
-                : `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">${left} vagas livres</span>`;
+                ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">${icon('flame', 'w-3 h-3')}${t('badge_last')}</span>`
+                : `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">${icon('armchair', 'w-3 h-3')}<span dir="ltr">${left}</span></span>`;
 
         return `
-            <label class="block ${isFull ? 'cursor-not-allowed' : 'cursor-pointer'}">
+            <label class="block ${isFull ? 'cursor-not-allowed' : 'cursor-pointer'}" title="${escapeHtml(titleOf(block))}">
                 <input type="radio" name="blockId" value="${block.id}" class="sr-only radio-card" ${isFull ? 'disabled' : ''} ${isChecked ? 'checked' : ''}>
                 <div class="h-full p-4 rounded-xl border border-slate-700/90 bg-slate-900/70 hover:border-slate-500 transition flex flex-col justify-between gap-3">
-                    <div>
-                        <div class="text-xs font-medium text-slate-400">${block.title.split('•')[1]?.trim() || 'Bloco'}</div>
-                        <div class="text-lg font-extrabold text-white mt-0.5">${block.timeRange}</div>
+                    <div class="flex items-center gap-3">
+                        <span class="p-2 rounded-lg bg-indigo-500/15 text-indigo-300">${icon(block.icon, 'w-5 h-5')}</span>
+                        <div>
+                            <div class="text-lg font-extrabold text-white leading-tight" dir="ltr">${rangeOf(block)}</div>
+                            <div class="text-[11px] text-slate-400">${escapeHtml(shortOf(block))}</div>
+                        </div>
                     </div>
                     <div class="flex items-center justify-between pt-2 border-t border-slate-800/80">
                         ${badgeHtml}
-                        <span class="text-[11px] text-slate-400 font-medium">${count}/${block.capacity}</span>
+                        <span class="text-[11px] text-slate-400 font-medium" dir="ltr">${count}/${block.capacity}</span>
                     </div>
                 </div>
             </label>`;
@@ -363,13 +359,13 @@ function renderSidebarAvailability() {
         const count = blockRegs(block.id).length;
         const left = Math.max(0, block.capacity - count);
         const percent = Math.min(100, Math.round((count / block.capacity) * 100));
-        const barColor = left === 0 ? 'bg-rose-500' : left <= 2 ? 'bg-amber-500' : 'bg-emerald-500';
-        const textColor = left === 0 ? 'text-rose-400' : 'text-emerald-400';
+        const barColor = left === 0 ? 'bg-purple-500' : left <= 2 ? 'bg-amber-500' : 'bg-emerald-500';
+        const textColor = left === 0 ? 'text-purple-300' : 'text-emerald-400';
         return `
             <div>
                 <div class="flex justify-between items-center text-xs mb-1.5">
-                    <span class="font-semibold text-white">${block.timeRange}</span>
-                    <span class="font-bold ${textColor}">${left === 0 ? 'Lotado (0 vagas)' : `${left} de ${block.capacity} disponíveis`}</span>
+                    <span class="inline-flex items-center gap-1.5 font-semibold text-white">${icon(block.icon, 'w-3.5 h-3.5 text-indigo-300')}<span dir="ltr">${rangeOf(block)}</span></span>
+                    <span class="inline-flex items-center gap-1 font-bold ${textColor}">${left === 0 ? icon('lock', 'w-3.5 h-3.5') : icon('armchair', 'w-3.5 h-3.5')}<span dir="ltr">${left}/${block.capacity}</span></span>
                 </div>
                 <div class="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden">
                     <div class="h-full ${barColor} transition-all duration-500 rounded-full" style="width: ${percent}%"></div>
@@ -383,16 +379,28 @@ function topicHtml(person) {
         return `<span class="text-sm font-medium text-slate-200">"${escapeHtml(person.topicTitle)}"</span>`;
     }
     if (person.topicMode === 'secret') {
-        return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-purple-500/15 text-purple-300 border border-purple-500/30">🤫 Tema Surpresa (Segredo)</span>`;
+        return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-purple-500/15 text-purple-300 border border-purple-500/30">${icon('venetian-mask', 'w-3.5 h-3.5')}${t('topic_secret')}</span>`;
     }
-    return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30">⏳ Sem tema por enquanto</span>`;
+    return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30">${icon('hourglass', 'w-3.5 h-3.5')}${t('topic_tbd')}</span>`;
 }
 
-const TECH_BADGES = {
-    own_laptop: `<span title="Vai levar próprio notebook" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] bg-slate-800 text-emerald-300 border border-slate-700"><i data-lucide="laptop" class="w-3 h-3"></i> Notebook</span>`,
-    send_file: `<span title="Vai mandar arquivo antes para PC da casa" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] bg-slate-800 text-sky-300 border border-slate-700"><i data-lucide="file-up" class="w-3 h-3"></i> PC Casa</span>`,
-    audio_out: `<span title="Precisa de saída de áudio" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] bg-slate-800 text-amber-300 border border-slate-700"><i data-lucide="volume-2" class="w-3 h-3"></i> Áudio</span>`
+const TECH = {
+    own_laptop: { icon: 'laptop', color: 'text-emerald-300', label: 'tech_laptop' },
+    send_file: { icon: 'file-up', color: 'text-sky-300', label: 'tech_file' },
+    audio_out: { icon: 'volume-2', color: 'text-amber-300', label: 'tech_audio' }
 };
+
+function techHtml(tech) {
+    const items = (tech || []).filter(k => TECH[k]);
+    if (!items.length) return '<span class="text-xs text-slate-500">—</span>';
+    return items.map(k => {
+        const label = escapeHtml(t(TECH[k].label));
+        return `<span title="${label}" aria-label="${label}" class="inline-flex items-center justify-center w-7 h-7 rounded-md bg-slate-800 ${TECH[k].color} border border-slate-700">${icon(TECH[k].icon, 'w-3.5 h-3.5')}</span>`;
+    }).join('');
+}
+
+const th = (ic, key, extra = '') =>
+    `<th class="py-2.5 px-4 ${extra}" title="${escapeHtml(t(key))}"><span class="inline-flex items-center gap-1.5">${icon(ic, 'w-3.5 h-3.5')}<span class="sr-only">${escapeHtml(t(key))}</span></span></th>`;
 
 function renderSchedule() {
     const mine = myRegs();
@@ -402,22 +410,21 @@ function renderSchedule() {
 
         const rowsHtml = block.slots.map((slot, slotIdx) => {
             const person = regs[slotIdx];
+            const note = escapeHtml(t(slot.note.key, slot.note.vars));
 
             if (!person) {
                 return `
                     <tr class="border-b border-slate-800/60 last:border-none hover:bg-slate-800/20 transition">
-                        <td class="py-3.5 px-4 whitespace-nowrap">
-                            <div class="font-mono text-xs sm:text-sm font-bold text-slate-400">${slot.start} - ${slot.end}</div>
-                            <div class="text-[11px] text-slate-500">${slot.note}</div>
+                        <td class="py-3 px-4 whitespace-nowrap" title="${note}">
+                            <div class="font-mono text-xs sm:text-sm font-bold text-slate-400" dir="ltr">${slot.start} - ${slot.end}</div>
                         </td>
-                        <td class="py-3.5 px-4" colspan="${organizerMode ? 4 : 3}">
+                        <td class="py-3 px-4" colspan="${organizerMode ? 4 : 3}">
                             <div class="flex items-center justify-between gap-2">
                                 <span class="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-400/90 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full whitespace-nowrap">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                                    Vaga #${slotIdx + 1} Disponível
+                                    ${icon('armchair', 'w-3.5 h-3.5')}${escapeHtml(t('slot_free', { n: slotIdx + 1 }))}
                                 </span>
-                                <button data-action="quick-select" data-block="${block.id}" class="text-xs font-semibold text-indigo-400 hover:text-indigo-300 underline underline-offset-2 whitespace-nowrap">
-                                    Reservar este horário →
+                                <button data-action="quick-select" data-block="${block.id}" title="${escapeHtml(t('reserve_slot'))}" aria-label="${escapeHtml(t('reserve_slot'))}" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/30 transition">
+                                    ${icon('plus', 'w-4 h-4')}
                                 </button>
                             </div>
                         </td>
@@ -425,80 +432,73 @@ function renderSchedule() {
             }
 
             const isMine = Boolean(mine[person.id]);
-            const techBadges = (person.tech || []).map(t => TECH_BADGES[t]).filter(Boolean);
             const id = escapeHtml(person.id);
 
             const organizerControls = organizerMode ? `
-                <td class="py-3.5 px-4 text-right whitespace-nowrap">
+                <td class="py-3 px-4 text-end whitespace-nowrap">
                     <div class="inline-flex items-center gap-1">
-                        <button data-action="move" data-id="${id}" data-dir="-1" ${slotIdx === 0 ? 'disabled' : ''} title="Subir na ordem" aria-label="Subir na ordem" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed transition">
-                            <i data-lucide="arrow-up" class="w-3.5 h-3.5"></i>
-                        </button>
-                        <button data-action="move" data-id="${id}" data-dir="1" ${slotIdx === regs.length - 1 ? 'disabled' : ''} title="Descer na ordem" aria-label="Descer na ordem" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed transition">
-                            <i data-lucide="arrow-down" class="w-3.5 h-3.5"></i>
-                        </button>
-                        <button data-action="remove" data-id="${id}" title="Remover e liberar vaga" aria-label="Remover e liberar vaga" class="p-1.5 rounded-lg bg-rose-500/15 hover:bg-rose-500/30 text-rose-400 border border-rose-500/30 ml-1 transition">
-                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                        </button>
+                        <button data-action="move" data-id="${id}" data-dir="-1" ${slotIdx === 0 ? 'disabled' : ''} title="${escapeHtml(t('move_up'))}" aria-label="${escapeHtml(t('move_up'))}" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed transition">${icon('arrow-up', 'w-3.5 h-3.5')}</button>
+                        <button data-action="move" data-id="${id}" data-dir="1" ${slotIdx === regs.length - 1 ? 'disabled' : ''} title="${escapeHtml(t('move_down'))}" aria-label="${escapeHtml(t('move_down'))}" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed transition">${icon('arrow-down', 'w-3.5 h-3.5')}</button>
+                        <button data-action="remove" data-id="${id}" title="${escapeHtml(t('remove_title'))}" aria-label="${escapeHtml(t('remove_title'))}" class="p-1.5 rounded-lg bg-purple-500/15 hover:bg-purple-500/30 text-purple-300 border border-purple-500/30 ms-1 transition">${icon('trash-2', 'w-3.5 h-3.5')}</button>
                     </div>
                 </td>` : '';
 
-            const cancelBtn = isMine ? `
-                <button data-action="cancel" data-id="${id}" class="ml-1 text-[11px] font-semibold text-rose-300/90 hover:text-rose-200 underline underline-offset-2">cancelar</button>` : '';
+            const mineHtml = isMine ? `
+                <span class="inline-flex items-center gap-1 text-[11px] text-emerald-300 font-semibold">
+                    ${icon('badge-check', 'w-3.5 h-3.5')}${escapeHtml(t('you'))}
+                    <button data-action="cancel" data-id="${id}" title="${escapeHtml(t('modal_cancel_title'))}" aria-label="${escapeHtml(t('modal_cancel_title'))}" class="ms-1 inline-flex items-center justify-center w-6 h-6 rounded-md bg-purple-500/15 hover:bg-purple-500/30 text-purple-300 border border-purple-500/30">${icon('x', 'w-3.5 h-3.5')}</button>
+                </span>` : '';
 
             return `
                 <tr class="border-b border-slate-800/60 last:border-none ${isMine ? 'bg-emerald-950/20' : 'bg-indigo-950/15'} hover:bg-indigo-950/30 transition">
-                    <td class="py-3.5 px-4 whitespace-nowrap">
-                        <div class="font-mono text-xs sm:text-sm font-bold text-indigo-300">${slot.start} - ${slot.end}</div>
-                        <div class="text-[11px] text-slate-400">Apresentação #${slotIdx + 1}</div>
+                    <td class="py-3 px-4 whitespace-nowrap" title="${note}">
+                        <div class="font-mono text-xs sm:text-sm font-bold text-indigo-300" dir="ltr">${slot.start} - ${slot.end}</div>
+                        <div class="text-[11px] text-slate-400">#${slotIdx + 1}</div>
                     </td>
-                    <td class="py-3.5 px-4 whitespace-nowrap">
+                    <td class="py-3 px-4 whitespace-nowrap">
                         <div class="flex items-center gap-2.5">
                             <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-xs font-bold text-white shrink-0">
                                 ${escapeHtml(Array.from(person.name)[0]?.toUpperCase() || '?')}
                             </div>
-                            <div>
-                                <span class="font-bold text-white text-sm">${escapeHtml(person.name)}</span>
-                                ${isMine ? `<div class="text-[11px] text-emerald-300 font-semibold">você ${cancelBtn}</div>` : ''}
+                            <div class="flex flex-col">
+                                <bdi class="font-bold text-white text-sm">${escapeHtml(person.name)}</bdi>
+                                ${mineHtml}
                             </div>
                         </div>
                     </td>
-                    <td class="py-3.5 px-4">${topicHtml(person)}</td>
-                    <td class="py-3.5 px-4">
-                        <div class="flex flex-wrap gap-1.5">
-                            ${techBadges.length ? techBadges.join('') : '<span class="text-xs text-slate-500">—</span>'}
-                        </div>
-                    </td>
+                    <td class="py-3 px-4"><bdi>${topicHtml(person)}</bdi></td>
+                    <td class="py-3 px-4"><div class="flex flex-wrap gap-1.5">${techHtml(person.tech)}</div></td>
                     ${organizerControls}
                 </tr>`;
         }).join('');
 
         const dinnerBreakHtml = bIdx === 1 ? `
-            <div class="rounded-2xl p-4 bg-slate-900/60 border border-dashed border-slate-700 flex items-center justify-center gap-3 text-slate-400 text-xs sm:text-sm">
-                <i data-lucide="utensils" class="w-4 h-4 text-amber-400 shrink-0"></i>
-                <span><strong>18h00 às 20h00:</strong> Intervalo livre para jantar, descansar e recarregar as energias! 🍕🥤</span>
+            <div class="rounded-2xl p-4 bg-slate-900/60 border border-dashed border-slate-700 flex items-center justify-center gap-3 text-slate-300 text-xs sm:text-sm">
+                ${icon('utensils', 'w-5 h-5 text-amber-400 shrink-0')}
+                <span>${t('dinner_html')}</span>
             </div>` : '';
 
         return `
             <div class="glass-card rounded-2xl overflow-hidden shadow-lg">
                 <div class="px-5 py-4 bg-slate-900/90 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
-                    <div>
-                        <span class="text-xs font-semibold uppercase tracking-wider text-indigo-400">${block.title}</span>
-                        <h3 class="text-lg font-extrabold text-white">${block.timeRange}</h3>
+                    <div class="flex items-center gap-3">
+                        <span class="p-2 rounded-lg bg-indigo-500/15 text-indigo-300">${icon(block.icon, 'w-5 h-5')}</span>
+                        <div>
+                            <span class="text-xs font-semibold uppercase tracking-wider text-indigo-400">${escapeHtml(titleOf(block))}</span>
+                            <h3 class="text-lg font-extrabold text-white" dir="ltr">${rangeOf(block)}</h3>
+                        </div>
                     </div>
-                    <span class="px-3 py-1 rounded-full text-xs font-bold ${left === 0 ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' : 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'}">
-                        ${left === 0 ? 'Bloco Lotado (0 vagas)' : `${left} ${left === 1 ? 'vaga restante' : 'vagas restantes'}`}
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${left === 0 ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'}">
+                        ${left === 0 ? icon('lock', 'w-3.5 h-3.5') : icon('armchair', 'w-3.5 h-3.5')}
+                        <span dir="ltr">${left}/${block.capacity}</span>
                     </span>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
+                    <table class="w-full text-start border-collapse">
                         <thead>
-                            <tr class="border-b border-slate-800 text-[11px] font-semibold uppercase tracking-wider text-slate-400 bg-slate-950/40">
-                                <th class="py-2.5 px-4">Horário</th>
-                                <th class="py-2.5 px-4">Apresentador</th>
-                                <th class="py-2.5 px-4">Tema</th>
-                                <th class="py-2.5 px-4">Setup</th>
-                                ${organizerMode ? '<th class="py-2.5 px-4 text-right">Organizar</th>' : ''}
+                            <tr class="border-b border-slate-800 text-[11px] font-semibold uppercase tracking-wider text-slate-400 bg-slate-950/40 text-start">
+                                ${th('clock', 'th_time')}${th('user-round', 'th_presenter')}${th('lightbulb', 'th_topic')}${th('wrench', 'th_setup')}
+                                ${organizerMode ? th('shield', 'th_organize', 'text-end') : ''}
                             </tr>
                         </thead>
                         <tbody>${rowsHtml}</tbody>
@@ -512,21 +512,21 @@ function renderSchedule() {
 // =========================================================================
 // 5. AÇÕES
 // =========================================================================
-async function run(action, successMsg) {
+async function run(action, successKey, vars) {
     try {
         await action();
-        if (successMsg) showToast(successMsg, 'info');
+        if (successKey) showToast(t(successKey, vars), 'info');
     } catch (err) {
         console.error(err);
         if (err.code === 'bad_pin' || err.code === 'no_pin') leaveOrganizerMode();
-        showToast(err.message || 'Algo deu errado.', 'error');
+        showToast(errorText(err), 'error');
     }
     await refresh();
 }
 
 document.getElementById('presentation-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (busy) return;
+    if (busy || !backend) return;
 
     const name = document.getElementById('presenter-name').value.trim();
     const blockRadio = document.querySelector('input[name="blockId"]:checked');
@@ -535,16 +535,16 @@ document.getElementById('presentation-form').addEventListener('submit', async (e
     const tech = Array.from(document.querySelectorAll('input[name="tech"]:checked')).map(cb => cb.value);
 
     if (!name) {
-        showToast('Por favor, digite o seu nome ou apelido!', 'error');
+        showToast(t('toast_name_required'), 'error');
         document.getElementById('presenter-name').focus();
         return;
     }
     if (!blockRadio) {
-        showToast('Escolha um bloco de horário disponível!', 'error');
+        showToast(t('toast_block_required'), 'error');
         return;
     }
     if (topicMode === 'defined' && !topicTitle) {
-        showToast('Escreva o tema da sua apresentação ou escolha "Segredo" / "Sem tema por enquanto".', 'error');
+        showToast(t('toast_topic_required'), 'error');
         document.getElementById('topic-title').focus();
         return;
     }
@@ -552,7 +552,7 @@ document.getElementById('presentation-form').addEventListener('submit', async (e
     busy = true;
     const btn = document.getElementById('submit-btn');
     btn.disabled = true;
-    btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i><span>Reservando sua vaga...</span>`;
+    btn.innerHTML = `${icon('loader-2', 'w-5 h-5 animate-spin')}<span>${t('submit_busy')}</span>`;
     icons();
 
     try {
@@ -560,11 +560,11 @@ document.getElementById('presentation-form').addEventListener('submit', async (e
         document.getElementById('presenter-name').value = '';
         document.getElementById('topic-title').value = '';
         document.querySelectorAll('input[name="tech"]').forEach(cb => { cb.checked = false; });
-        showToast(`Vaga garantida para ${name}! 🎉`, 'success');
+        showToast(t('toast_success', { name }), 'success');
         switchTab('schedule');
     } catch (err) {
         console.error(err);
-        showToast(err.message || 'Não foi possível reservar. Tente de novo.', 'error');
+        showToast(err.code ? errorText(err) : t('toast_reserve_fail'), 'error');
     } finally {
         busy = false;
         await refresh();
@@ -596,55 +596,57 @@ function quickSelectBlock(blockId) {
     document.getElementById('presenter-name').focus();
 }
 
-function enterOrganizerMode() {
-    organizerMode = true;
-    document.getElementById('organizer-btn-label').textContent = 'Modo Organizador: ON';
-    document.getElementById('organizer-banner').classList.remove('hidden');
-    switchTab('schedule');
+function renderOrganizerButton() {
+    const btn = document.getElementById('organizer-toggle-btn');
+    const key = organizerMode ? 'org_on' : 'org_off';
+    btn.dataset.i18nTitle = key;
+    btn.dataset.i18nAria = key;
+    btn.title = t(key);
+    btn.setAttribute('aria-label', t(key));
+    btn.setAttribute('aria-pressed', String(organizerMode));
+    btn.className = `inline-flex items-center justify-center w-9 h-9 rounded-xl border transition ${organizerMode
+        ? 'border-purple-500/60 bg-purple-600/30 text-purple-200'
+        : 'border-slate-700/80 bg-slate-900/80 text-purple-400 hover:text-purple-300 hover:border-slate-600'}`;
+    document.getElementById('organizer-banner').classList.toggle('hidden', !organizerMode);
+}
+
+function setOrganizer(on) {
+    organizerMode = on;
+    renderOrganizerButton();
+    if (on) switchTab('schedule');
     renderSchedule();
     icons();
 }
 
 function leaveOrganizerMode() {
-    organizerMode = false;
     organizerPin = null;
     store.del(PIN_KEY, sessionStorage);
-    document.getElementById('organizer-btn-label').textContent = 'Modo Organizador: OFF';
-    document.getElementById('organizer-banner').classList.add('hidden');
-    renderSchedule();
-    icons();
+    setOrganizer(false);
 }
 
 document.getElementById('organizer-toggle-btn').addEventListener('click', () => {
-    if (organizerMode) {
-        organizerMode = false;
-        document.getElementById('organizer-btn-label').textContent = 'Modo Organizador: OFF';
-        document.getElementById('organizer-banner').classList.add('hidden');
-        renderSchedule();
-        icons();
-        return;
-    }
+    if (organizerMode) return setOrganizer(false);
     if (!backend) return;
     if (!backend.needsPin || organizerPin) {
-        enterOrganizerMode();
-        showToast('Modo Organizador ativado!', 'info');
+        setOrganizer(true);
+        showToast(t('toast_org_on'), 'info');
         return;
     }
     openModal({
-        title: 'Modo Organizador',
-        message: 'Digite o PIN do organizador para reordenar ou remover inscrições.',
-        okLabel: 'Entrar',
-        okClass: 'bg-purple-600 hover:bg-purple-500 shadow-purple-600/20',
+        title: t('modal_org_title'),
+        message: t('modal_org_msg'),
+        okLabel: t('modal_org_ok'),
+        okClass: 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-600/20',
         withInput: true,
         onConfirm: async (pin) => {
             try {
                 await backend.checkPin(pin);
                 organizerPin = pin;
                 store.set(PIN_KEY, pin, sessionStorage);
-                enterOrganizerMode();
-                showToast('Modo Organizador ativado!', 'info');
+                setOrganizer(true);
+                showToast(t('toast_org_on'), 'info');
             } catch (err) {
-                showToast(err.message || 'Não foi possível validar o PIN.', 'error');
+                showToast(err.code ? errorText(err) : t('toast_pin_fail'), 'error');
             }
         }
     });
@@ -652,9 +654,9 @@ document.getElementById('organizer-toggle-btn').addEventListener('click', () => 
 
 document.getElementById('reset-all-btn').addEventListener('click', () => {
     openModal({
-        title: 'Resetar Todas as Vagas?',
-        message: `Isso vai apagar todas as inscrições atuais e restaurar as ${TOTAL_CAPACITY} vagas originais. Tem certeza?`,
-        onConfirm: () => run(() => backend.reset(organizerPin), `Todas as ${TOTAL_CAPACITY} vagas foram resetadas!`)
+        title: t('modal_reset_title'),
+        message: t('modal_reset_msg', { n: TOTAL_CAPACITY }),
+        onConfirm: () => run(() => backend.reset(organizerPin), 'toast_reset', { n: TOTAL_CAPACITY })
     });
 });
 
@@ -672,17 +674,17 @@ document.getElementById('schedule-blocks-container').addEventListener('click', (
     }
     if (action === 'remove' && person) {
         return openModal({
-            title: 'Remover Apresentador?',
-            message: `Deseja remover "${person.name}" do cronograma? A vaga voltará a ficar disponível imediatamente.`,
-            onConfirm: () => run(() => backend.remove(organizerPin, id), 'Inscrição removida e vaga liberada!')
+            title: t('modal_remove_title'),
+            message: t('modal_remove_msg', { name: person.name }),
+            onConfirm: () => run(() => backend.remove(organizerPin, id), 'toast_removed')
         });
     }
     if (action === 'cancel' && person) {
         return openModal({
-            title: 'Cancelar sua inscrição?',
-            message: `Sua vaga das ${slotStartOf(person)} vai ficar livre para outra pessoa.`,
-            okLabel: 'Cancelar inscrição',
-            onConfirm: () => run(() => backend.cancel(id), 'Inscrição cancelada e vaga liberada.')
+            title: t('modal_cancel_title'),
+            message: t('modal_cancel_msg', { time: slotStartOf(person) }),
+            okLabel: t('modal_cancel_ok'),
+            onConfirm: () => run(() => backend.cancel(id), 'toast_cancelled')
         });
     }
 });
@@ -690,32 +692,32 @@ document.getElementById('schedule-blocks-container').addEventListener('click', (
 function slotStartOf(person) {
     const block = BLOCKS_CONFIG.find(b => b.id === person.blockId);
     const idx = blockRegs(person.blockId).findIndex(r => r.id === person.id);
-    return block?.slots[idx]?.start || block?.timeRange || '';
+    return block?.slots[idx]?.start || (block ? rangeOf(block) : '');
 }
 
-// Copiar texto formatado para WhatsApp
+// Copiar texto formatado para WhatsApp (no idioma escolhido)
 document.getElementById('copy-whatsapp-btn').addEventListener('click', async () => {
-    let text = `🛹📊 *ROLÊ DE SLIDES - CRONOGRAMA*\n📅 Sábado, 14/11 • a partir das 12h\n\n`;
+    let text = `🌹🛹 *${t('wa_header')}*\n📅 ${t('wa_date')}\n_${t('wa_tagline')}_\n\n`;
 
     BLOCKS_CONFIG.forEach((block, bIdx) => {
         const regs = blockRegs(block.id);
-        text += `⏰ *${block.timeRange}* (${regs.length}/${block.capacity} ocupadas)\n`;
+        text += `⏰ *${rangeOf(block)}* (${t('wa_occupied', { n: regs.length, cap: block.capacity })})\n`;
         block.slots.forEach((slot, idx) => {
             const p = regs[idx];
             if (p) {
-                const tema = p.topicMode === 'defined' ? `"${p.topicTitle}"` : p.topicMode === 'secret' ? '🤫 Tema Surpresa' : '⏳ A definir';
+                const tema = p.topicMode === 'defined' ? `"${p.topicTitle}"` : p.topicMode === 'secret' ? t('wa_topic_secret') : t('wa_topic_tbd');
                 text += `• ${slot.start} - ${slot.end}: *${p.name}* (${tema})\n`;
             } else {
-                text += `• ${slot.start} - ${slot.end}: _[Vaga Livre]_\n`;
+                text += `• ${slot.start} - ${slot.end}: _${t('wa_free')}_\n`;
             }
         });
         text += `\n`;
-        if (bIdx === 1) text += `🍕 *18h00 às 20h00: Pausa para Jantar*\n\n`;
+        if (bIdx === 1) text += `🍕 *${t('wa_dinner')}*\n\n`;
     });
     text += location.href.split('#')[0];
 
-    if (await copyText(text)) showToast('Cronograma copiado! Só colar no grupo do WhatsApp.', 'success');
-    else showToast('Não foi possível copiar automaticamente.', 'error');
+    if (await copyText(text)) showToast(t('toast_copied'), 'success');
+    else showToast(t('toast_copy_fail'), 'error');
 });
 
 async function copyText(text) {
@@ -737,7 +739,7 @@ async function copyText(text) {
 }
 
 // Modal de confirmação / PIN
-function openModal({ title, message, onConfirm, okLabel = 'Confirmar', okClass = 'bg-rose-600 hover:bg-rose-500 shadow-rose-600/20', withInput = false }) {
+function openModal({ title, message, onConfirm, okLabel = t('confirm'), okClass = 'bg-purple-600 hover:bg-purple-500 shadow-purple-600/20', withInput = false }) {
     const modal = document.getElementById('confirm-modal');
     const form = document.getElementById('confirm-form');
     const input = document.getElementById('confirm-input');
@@ -765,7 +767,7 @@ function openModal({ title, message, onConfirm, okLabel = 'Confirmar', okClass =
         e.preventDefault();
         const value = input.value.trim();
         if (withInput && !/^\d{4,8}$/.test(value)) {
-            showToast('O PIN tem de 4 a 8 dígitos.', 'error');
+            showToast(t('toast_pin_format'), 'error');
             input.focus();
             return;
         }
@@ -787,14 +789,14 @@ function showToast(message, type = 'info') {
     const toast = document.createElement('div');
     const colors = {
         success: 'bg-emerald-950/95 border-emerald-500/50 text-emerald-200',
-        error: 'bg-rose-950/95 border-rose-500/50 text-rose-200',
+        error: 'bg-purple-950/95 border-purple-500/50 text-purple-100',
         info: 'bg-slate-900/95 border-indigo-500/50 text-slate-100'
     };
     const iconNames = { success: 'check-circle', error: 'alert-circle', info: 'info' };
 
     toast.setAttribute('role', type === 'error' ? 'alert' : 'status');
     toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl border shadow-2xl backdrop-blur-md text-sm font-medium transform transition-all duration-300 ${colors[type] || colors.info}`;
-    toast.innerHTML = `<i data-lucide="${iconNames[type] || 'info'}" class="w-5 h-5 shrink-0"></i><span>${escapeHtml(message)}</span>`;
+    toast.innerHTML = `${icon(iconNames[type] || 'info', 'w-5 h-5 shrink-0')}<span>${escapeHtml(message)}</span>`;
     container.appendChild(toast);
     icons();
 
@@ -814,8 +816,78 @@ function escapeHtml(str) {
         .replace(/'/g, '&#039;');
 }
 
+// =========================================================================
+// 6. TRILHA SONORA (Noturno Op. 9 nº 2 em loop)
+// =========================================================================
+const MUSIC_OFF_KEY = 'role_slides_music_off_v1';
+const audio = document.getElementById('bg-music');
+const musicBtn = document.getElementById('music-btn');
+
+function renderMusic() {
+    const playing = !audio.paused;
+    musicBtn.classList.toggle('paused', !playing);
+    musicBtn.setAttribute('aria-pressed', String(playing));
+    musicBtn.setAttribute('aria-label', t(playing ? 'music_pause' : 'music_play'));
+    musicBtn.title = t(playing ? 'music_pause' : 'music_play');
+    document.getElementById('music-icon-play')?.classList.toggle('hidden', playing);
+    document.getElementById('music-icon-pause')?.classList.toggle('hidden', !playing);
+}
+
+function setupMusic() {
+    audio.volume = 0.45;
+    audio.addEventListener('play', renderMusic);
+    audio.addEventListener('pause', renderMusic);
+
+    const play = () => audio.play().catch(() => { /* autoplay bloqueado: espera um gesto */ });
+
+    musicBtn.addEventListener('click', () => {
+        if (audio.paused) {
+            store.del(MUSIC_OFF_KEY);
+            play();
+        } else {
+            store.set(MUSIC_OFF_KEY, true);
+            audio.pause();
+        }
+    });
+
+    renderMusic();
+    if (store.get(MUSIC_OFF_KEY)) return;
+
+    // navegadores bloqueiam som sem interação: tenta já e, se não der, no primeiro toque/tecla
+    play();
+    const events = ['pointerdown', 'keydown', 'touchstart'];
+    const unlock = (e) => {
+        if (musicBtn.contains(e.target)) return; // o próprio botão cuida de si
+        if (audio.paused && !store.get(MUSIC_OFF_KEY)) play();
+        events.forEach(ev => document.removeEventListener(ev, unlock, true));
+    };
+    events.forEach(ev => document.addEventListener(ev, unlock, true));
+}
+
+// =========================================================================
+// 7. IDIOMA
+// =========================================================================
+function applyLang(code) {
+    setLang(code);
+    document.getElementById('topic-title').setAttribute('aria-label', t('q3'));
+    renderStatus();
+    renderOrganizerButton();
+    renderMusic();
+    renderAll();
+}
+
+function setupLang() {
+    const select = document.getElementById('lang-select');
+    select.innerHTML = LANGS.map(l => `<option value="${l.code}" lang="${l.html}">${escapeHtml(l.label)}</option>`).join('');
+    select.value = detectLang();
+    select.addEventListener('change', () => applyLang(select.value));
+    applyLang(select.value);
+    select.value = getLang();
+}
+
 // Inicialização (módulos rodam depois do parse do HTML)
-icons();
+switchTab('form');
+setupMusic();
+setupLang();
 startCountdown();
-renderAll();
 initStorage();
