@@ -406,7 +406,7 @@ function renderSidebarAvailability() {
 
 function topicHtml(person) {
     if (person.topicMode === 'defined') {
-        return `<span class="text-sm font-medium text-slate-800">"${escapeHtml(person.topicTitle)}"</span>`;
+        return `<span class="text-sm font-medium text-slate-800 break-words">"${escapeHtml(person.topicTitle)}"</span>`;
     }
     if (person.topicMode === 'secret') {
         return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-purple-500/15 text-purple-700 border border-purple-500/30">${icon('venetian-mask', 'w-3.5 h-3.5')}${t('topic_secret')}</span>`;

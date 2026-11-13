@@ -32,7 +32,7 @@ create table if not exists rs.registrations (
   block_id text not null references rs.blocks (id),
   name text not null check (char_length(name) between 1 and 40),
   topic_mode text not null check (topic_mode in ('defined', 'secret', 'tbd')),
-  topic_title text not null default '' check (char_length(topic_title) <= 90),
+  topic_title text not null default '' check (char_length(topic_title) <= 300),
   tech text[] not null default '{}',
   order_index int not null,
   created_at bigint not null,
@@ -193,7 +193,7 @@ begin
   if char_length(clean_name) < 1 or char_length(clean_name) > 40 then return rs.err('bad_name'); end if;
   if p_topic_mode is null or p_topic_mode not in ('defined', 'secret', 'tbd') then return rs.err('bad_topic'); end if;
   if p_topic_mode = 'defined' then
-    if char_length(clean_title) < 1 or char_length(clean_title) > 90 then return rs.err('bad_topic'); end if;
+    if char_length(clean_title) < 1 or char_length(clean_title) > 300 then return rs.err('bad_topic'); end if;
   else
     clean_title := '';
   end if;

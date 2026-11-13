@@ -20,7 +20,7 @@ begin
   if char_length(clean_name) < 1 or char_length(clean_name) > 40 then return rs.err('bad_name'); end if;
   if p_topic_mode is null or p_topic_mode not in ('defined', 'secret', 'tbd') then return rs.err('bad_topic'); end if;
   if p_topic_mode = 'defined' then
-    if char_length(clean_title) < 1 or char_length(clean_title) > 90 then return rs.err('bad_topic'); end if;
+    if char_length(clean_title) < 1 or char_length(clean_title) > 300 then return rs.err('bad_topic'); end if;
   else
     clean_title := '';
   end if;
